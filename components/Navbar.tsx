@@ -72,6 +72,12 @@ export default function Navbar() {
 
         <div className="hidden sm:flex items-center gap-1">
           <Link
+            href="/schedule"
+            className="text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-gray-800/50 transition-all"
+          >
+            Schedule
+          </Link>
+          <Link
             href="/leaderboard"
             className="text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-gray-800/50 transition-all"
           >
@@ -141,6 +147,13 @@ export default function Navbar() {
                       className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800/50 sm:hidden"
                     >
                       Profile
+                    </Link>
+                    <Link
+                      href="/schedule"
+                      onClick={() => setMenuOpen(false)}
+                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-800/50 sm:hidden"
+                    >
+                      Schedule
                     </Link>
                     <Link
                       href="/leaderboard"
