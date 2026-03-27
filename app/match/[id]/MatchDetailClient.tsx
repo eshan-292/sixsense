@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getTeamColor, formatCoins } from "@/lib/utils";
 import MarketCard from "@/components/MarketCard";
 import ShareButton from "@/components/ShareButton";
+import Link from "next/link";
 import type { Match, Market, Prediction, Profile } from "@/lib/types";
 
 export default function MatchDetailClient({
@@ -73,6 +74,14 @@ export default function MatchDetailClient({
     <div className="min-h-screen">
       <div className="hero-gradient">
         <div className="max-w-2xl mx-auto px-4 py-6">
+          {/* Back link */}
+          <Link
+            href="/"
+            className="inline-flex items-center text-xs text-gray-500 hover:text-gray-300 mb-3 transition-colors"
+          >
+            ← Back to matches
+          </Link>
+
           {/* Match Header */}
           <div className="glass-card rounded-2xl p-6 gradient-border">
             <div className="flex items-center justify-between mb-6">
