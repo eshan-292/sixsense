@@ -1,8 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatCoins } from "@/lib/utils";
+import type { Metadata } from "next";
 import type { LeaderboardEntry } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Leaderboard",
+  description:
+    "See who's leading the SixSense IPL prediction market. Top predictors ranked by coins earned.",
+};
 
 export default async function LeaderboardPage() {
   const supabase = await createClient();

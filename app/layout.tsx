@@ -16,10 +16,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SixSense | IPL Prediction Market",
+  title: {
+    default: "SixSense | IPL Prediction Market",
+    template: "%s | SixSense",
+  },
   description:
     "Predict IPL match outcomes, compete with friends, and prove your cricket knowledge. Play with virtual coins — no real money involved.",
   manifest: "/manifest.json",
+  metadataBase: new URL("https://sixsense-mu.vercel.app"),
+  openGraph: {
+    title: "SixSense | IPL Prediction Market",
+    description:
+      "Predict IPL 2026 match outcomes with virtual coins. Compete on the leaderboard and prove your cricket knowledge!",
+    siteName: "SixSense",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SixSense | IPL Prediction Market",
+    description:
+      "Predict IPL 2026 match outcomes with virtual coins. Compete on the leaderboard!",
+  },
 };
 
 export const viewport: Viewport = {

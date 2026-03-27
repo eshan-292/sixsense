@@ -39,6 +39,7 @@ export default function ManageMatchesPage() {
     { label: "", odds: 2 },
   ]);
 
+  const [creatingTemplates, setCreatingTemplates] = useState(false);
   const [msg, setMsg] = useState("");
   const supabase = createClient();
 
@@ -131,6 +132,85 @@ export default function ManageMatchesPage() {
     loadData();
   };
 
+  const getTemplatesForMatch = (matchId: string) => {
+    const match = matches.find((m) => m.id === matchId);
+    if (!match) return [];
+    return [
+      {
+        name: "Match Winner",
+        question: `Who will win ${match.team_a_short} vs ${match.team_b_short}?`,
+        options: [
+          { label: match.team_a_short, odds: 2 },
+          { label: match.team_b_short, odds: 2 },
+        ],
+      },
+      {
+        name: "Total Runs O/U 340",
+        question: `Will the combined total exceed 340 runs?`,
+        options: [
+          { label: "Over 340", odds: 1.9 },
+          { label: "Under 340", odds: 1.9 },
+        ],
+      },
+      {
+        name: "First Innings Score",
+        question: `What will the first innings score be?`,
+        options: [
+          { label: "Under 150", odds: 3 },
+          { label: "150-179", odds: 2.5 },
+          { label: "180-199", odds: 2.5 },
+          { label: "200+", odds: 3 },
+        ],
+      },
+      {
+        name: "Player of the Match",
+        question: `Which team's player will be Player of the Match?`,
+        options: [
+          { label: `${match.team_a_short} player`, odds: 2 },
+          { label: `${match.team_b_short} player`, odds: 2 },
+        ],
+      },
+    ];
+  };
+
+  const handleCreateFromTemplate = async (
+    matchId: string,
+    template: { question: string; options: { label: string; odds: number }[] }
+  ) => {
+    const options = template.options.map((o, i) => ({
+      id: `opt_${i}`,
+      label: o.label,
+      odds: o.odds,
+    }));
+
+    const { error } = await supabase.from("markets").insert({
+      match_id: matchId,
+      question: template.question,
+      market_type: options.length === 2 ? "binary" : "multiple_choice",
+      options,
+      status: "open",
+    });
+
+    if (error) {
+      setMsg(`Error: ${error.message}`);
+      return false;
+    }
+    return true;
+  };
+
+  const handleCreateAllTemplates = async (matchId: string) => {
+    setCreatingTemplates(true);
+    const templates = getTemplatesForMatch(matchId);
+    let created = 0;
+    for (const t of templates) {
+      const ok = await handleCreateFromTemplate(matchId, t);
+      if (ok) created++;
+    }
+    setMsg(`Created ${created} markets from templates!`);
+    setCreatingTemplates(false);
+    loadData();
+  };
+
   const handleUpdateStatus = async (matchId: string, status: string) => {
     await supabase.from("matches").update({ status }).eq("id", matchId);
     // If locking match, lock all its markets too
@@ -148,8 +228,24 @@ export default function ManageMatchesPage() {
   if (!isAdmin) return <div className="max-w-3xl mx-auto px-4 py-16 text-center text-red-400">Access denied.</div>;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-white mb-6">Manage Matches</h1>
+    <div className="min-h-screen">
+      <div className="hero-gradient">
+        <div className="max-w-3xl mx-auto px-4 pt-8 pb-4">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Manage Matches</h1>
+              <p className="text-sm text-gray-500">{matches.length} total matches</p>
+            </div>
+            <a
+              href="/admin"
+              className="text-xs text-gray-500 hover:text-gray-300 bg-gray-800/50 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              ← Back to Admin
+            </a>
+          </div>
+        </div>
+      </div>
+      <div className="max-w-3xl mx-auto px-4 pb-10">
 
       {msg && (
         <div className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm p-3 rounded-lg mb-4">
@@ -233,6 +329,34 @@ export default function ManageMatchesPage() {
               </option>
             ))}
         </select>
+        {/* Quick Templates */}
+        {selectedMatchId && (
+          <div className="mb-3">
+            <p className="text-[11px] text-gray-500 mb-1.5 uppercase tracking-wider">Quick Templates</p>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {getTemplatesForMatch(selectedMatchId).map((t) => (
+                <button
+                  key={t.name}
+                  onClick={() => {
+                    setMarketQuestion(t.question);
+                    setMarketOptions(t.options.map((o) => ({ label: o.label, odds: o.odds })));
+                  }}
+                  className="text-[11px] bg-gray-800 hover:bg-indigo-600/20 hover:border-indigo-500/50 border border-gray-700 text-gray-300 px-2.5 py-1 rounded-lg transition-colors"
+                >
+                  {t.name}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => handleCreateAllTemplates(selectedMatchId)}
+              disabled={creatingTemplates}
+              className="text-[11px] bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-600/30 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              {creatingTemplates ? "Creating..." : "Create All 4 Templates at Once"}
+            </button>
+          </div>
+        )}
+
         <input
           type="text"
           placeholder='Question (e.g. "Who will win?")'
@@ -345,6 +469,7 @@ export default function ManageMatchesPage() {
             </div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );
