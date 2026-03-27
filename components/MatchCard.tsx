@@ -8,9 +8,13 @@ import { useEffect, useState } from "react";
 export default function MatchCard({
   match,
   featured = false,
+  marketCount,
+  predictionCount,
 }: {
   match: Match;
   featured?: boolean;
+  marketCount?: number;
+  predictionCount?: number;
 }) {
   const [countdown, setCountdown] = useState(timeUntil(match.match_date));
 
@@ -96,14 +100,32 @@ export default function MatchCard({
           </div>
         </div>
 
-        {match.venue && (
-          <p className="text-[11px] text-gray-600 mt-3 text-center truncate">
-            📍 {match.venue}
-          </p>
-        )}
+        <div className="flex items-center justify-between mt-3">
+          {match.venue ? (
+            <p className="text-[11px] text-gray-600 truncate flex-1">
+              📍 {match.venue}
+            </p>
+          ) : (
+            <div />
+          )}
+          {(marketCount !== undefined || predictionCount !== undefined) && (
+            <div className="flex items-center gap-2 shrink-0 ml-2">
+              {marketCount !== undefined && marketCount > 0 && (
+                <span className="text-[10px] text-gray-500">
+                  {marketCount} market{marketCount !== 1 ? "s" : ""}
+                </span>
+              )}
+              {predictionCount !== undefined && predictionCount > 0 && (
+                <span className="text-[10px] text-indigo-400/70">
+                  {predictionCount} prediction{predictionCount !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
 
         {match.status !== "completed" && (
-          <div className="mt-3 text-center">
+          <div className="mt-2 text-center">
             <span className="text-xs text-indigo-400 font-medium group-hover:text-indigo-300 transition-colors">
               Predict Now →
             </span>

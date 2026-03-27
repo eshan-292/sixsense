@@ -39,6 +39,42 @@ export default async function Home() {
     .order("match_date", { ascending: false })
     .limit(3);
 
+  // Get markets and predictions for match stats
+  const allMatchIds = [
+    ...(todayMatches || []),
+    ...(upcomingMatches || []),
+    ...(recentMatches || []),
+  ].map((m) => m.id);
+
+  const { data: matchMarkets } = allMatchIds.length > 0
+    ? await supabase
+        .from("markets")
+        .select("id, match_id")
+        .in("match_id", allMatchIds)
+    : { data: [] };
+
+  const marketIds = (matchMarkets || []).map((m) => m.id);
+  const { data: matchPredictions } = marketIds.length > 0
+    ? await supabase
+        .from("predictions")
+        .select("id, market_id")
+        .in("market_id", marketIds)
+    : { data: [] };
+
+  // Build counts per match
+  const marketCountByMatch: Record<string, number> = {};
+  const predictionCountByMatch: Record<string, number> = {};
+  (matchMarkets || []).forEach((m) => {
+    marketCountByMatch[m.match_id] = (marketCountByMatch[m.match_id] || 0) + 1;
+  });
+  (matchPredictions || []).forEach((p) => {
+    const market = (matchMarkets || []).find((m) => m.id === p.market_id);
+    if (market) {
+      predictionCountByMatch[market.match_id] =
+        (predictionCountByMatch[market.match_id] || 0) + 1;
+    }
+  });
+
   // Stats
   const { count: totalPlayers } = await supabase
     .from("profiles")
@@ -112,7 +148,13 @@ export default async function Home() {
             </div>
             <div className="space-y-3">
               {todayMatches.map((match: Match) => (
-                <MatchCard key={match.id} match={match} featured />
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  featured
+                  marketCount={marketCountByMatch[match.id]}
+                  predictionCount={predictionCountByMatch[match.id]}
+                />
               ))}
             </div>
           </section>
@@ -130,7 +172,12 @@ export default async function Home() {
             </div>
             <div className="space-y-3">
               {upcomingMatches.map((match: Match) => (
-                <MatchCard key={match.id} match={match} />
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  marketCount={marketCountByMatch[match.id]}
+                  predictionCount={predictionCountByMatch[match.id]}
+                />
               ))}
             </div>
             <Link
@@ -190,7 +237,12 @@ export default async function Home() {
             </div>
             <div className="space-y-3">
               {recentMatches.map((match: Match) => (
-                <MatchCard key={match.id} match={match} />
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  marketCount={marketCountByMatch[match.id]}
+                  predictionCount={predictionCountByMatch[match.id]}
+                />
               ))}
             </div>
           </section>

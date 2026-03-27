@@ -12,6 +12,10 @@ const TEAMS = [
 export default function ScheduleClient({ matches }: { matches: Match[] }) {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 
+  // Build match number map from full ordered list
+  const matchNumberMap = new Map<string, number>();
+  matches.forEach((m, i) => matchNumberMap.set(m.id, i + 1));
+
   const filtered = selectedTeam
     ? matches.filter(
         (m) =>
@@ -96,7 +100,7 @@ export default function ScheduleClient({ matches }: { matches: Match[] }) {
                   isToday ? "text-orange-400" : "text-gray-500"
                 }`}
               >
-                {isToday && "\uD83D\uDD25 "}
+                {isToday && "🔥 "}
                 {date}
                 {dayMatches.length > 1 && (
                   <span className="text-gray-600 ml-1.5 normal-case">
@@ -162,9 +166,14 @@ export default function ScheduleClient({ matches }: { matches: Match[] }) {
                       </div>
                     </div>
 
-                    <p className="text-[10px] text-gray-600 mt-1.5 text-center truncate">
-                      \uD83D\uDCCD {match.venue}
-                    </p>
+                    <div className="flex items-center justify-between mt-1.5">
+                      <span className="text-[10px] text-gray-700 font-medium">
+                        Match {matchNumberMap.get(match.id)}
+                      </span>
+                      <p className="text-[10px] text-gray-600 truncate">
+                        📍 {match.venue}
+                      </p>
+                    </div>
                   </div>
                 </Link>
               ))}
