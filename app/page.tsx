@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import MatchCard from "@/components/MatchCard";
+import NextMatchCountdown from "@/components/NextMatchCountdown";
 import type { Match } from "@/lib/types";
 import Link from "next/link";
 
@@ -136,6 +137,21 @@ export default async function Home() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pb-10">
+        {/* Next match countdown */}
+        {(() => {
+          const nextMatch =
+            todayMatches?.find(
+              (m) => new Date(m.match_date).getTime() > Date.now()
+            ) || upcomingMatches?.[0];
+          return nextMatch ? (
+            <NextMatchCountdown
+              matchDate={nextMatch.match_date}
+              teamA={nextMatch.team_a_short}
+              teamB={nextMatch.team_b_short}
+            />
+          ) : null;
+        })()}
+
         {/* Today's Matches */}
         {todayMatches && todayMatches.length > 0 && (
           <section className="mb-8">
