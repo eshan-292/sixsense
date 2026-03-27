@@ -183,24 +183,43 @@ export default function MarketCard({
       {/* Existing prediction summary */}
       {hasPredicted && (
         <div className="mt-3 p-2.5 bg-indigo-500/5 border border-indigo-500/15 rounded-lg">
-          <p className="text-xs text-indigo-300">
-            You wagered{" "}
-            <span className="font-semibold">
-              🪙 {formatCoins(existingPrediction!.coins_wagered)}
-            </span>
-            {existingPrediction!.coins_won !== null && (
-              <span>
-                {" → "}
-                {existingPrediction!.coins_won > 0 ? (
-                  <span className="text-green-400 font-semibold">
-                    Won 🪙 {formatCoins(existingPrediction!.coins_won)}
-                  </span>
-                ) : (
-                  <span className="text-red-400 font-semibold">Lost</span>
-                )}
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-indigo-300">
+              You wagered{" "}
+              <span className="font-semibold">
+                🪙 {formatCoins(existingPrediction!.coins_wagered)}
               </span>
-            )}
-          </p>
+              {existingPrediction!.coins_won !== null && (
+                <span>
+                  {" → "}
+                  {existingPrediction!.coins_won > 0 ? (
+                    <span className="text-green-400 font-semibold">
+                      Won 🪙 {formatCoins(existingPrediction!.coins_won)}
+                    </span>
+                  ) : (
+                    <span className="text-red-400 font-semibold">Lost</span>
+                  )}
+                </span>
+              )}
+            </p>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                const pickedOption = market.options.find(
+                  (o) => o.id === existingPrediction!.selected_option_id
+                );
+                const text = `🏏 I predicted "${pickedOption?.label}" on "${market.question}" with ${formatCoins(existingPrediction!.coins_wagered)} coins on SixSense!${existingPrediction!.coins_won !== null && existingPrediction!.coins_won > 0 ? ` Won ${formatCoins(existingPrediction!.coins_won)} coins! 🎉` : ""}`;
+                if (navigator.share) {
+                  navigator.share({ text, url: window.location.href });
+                } else {
+                  navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+                }
+              }}
+              className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors shrink-0 ml-2"
+            >
+              Share →
+            </button>
+          </div>
         </div>
       )}
 
