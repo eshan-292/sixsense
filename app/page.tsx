@@ -133,6 +133,12 @@ export default async function Home() {
                 <MatchCard key={match.id} match={match} />
               ))}
             </div>
+            <Link
+              href="/schedule"
+              className="block text-center text-xs text-indigo-400 hover:text-indigo-300 mt-3 transition-colors"
+            >
+              View all 70 matches →
+            </Link>
           </section>
         )}
 
