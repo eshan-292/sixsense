@@ -83,6 +83,12 @@ export default function Navbar() {
           >
             Leaderboard
           </Link>
+          <Link
+            href="/how-to-play"
+            className="text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-gray-800/50 transition-all"
+          >
+            Rules
+          </Link>
           {user && (
             <Link
               href="/profile"

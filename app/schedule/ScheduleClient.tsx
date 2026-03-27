@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { getTeamColor } from "@/lib/utils";
 import type { Match } from "@/lib/types";
@@ -11,6 +11,15 @@ const TEAMS = [
 
 export default function ScheduleClient({ matches }: { matches: Match[] }) {
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const todayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Auto-scroll to today's matches on mount
+    const timer = setTimeout(() => {
+      todayRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Build match number map from full ordered list
   const matchNumberMap = new Map<string, number>();
@@ -86,7 +95,7 @@ export default function ScheduleClient({ matches }: { matches: Match[] }) {
         })();
 
         return (
-          <div key={date} className="mb-6">
+          <div key={date} className="mb-6" ref={isToday ? todayRef : undefined}>
             <div className="flex items-center gap-2 mb-2 sticky top-14 z-10 bg-[#030712]/90 backdrop-blur-sm py-2">
               <div
                 className={`h-px flex-1 ${
