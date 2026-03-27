@@ -263,7 +263,12 @@ export default async function Home() {
         {/* How it works */}
         <section className="mt-4">
           <div className="glass-card rounded-xl p-5">
-            <h3 className="text-sm font-semibold text-white mb-4">How SixSense Works</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-white">How SixSense Works</h3>
+              <Link href="/how-to-play" className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors">
+                Full rules →
+              </Link>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="text-center">
                 <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center mx-auto mb-2">

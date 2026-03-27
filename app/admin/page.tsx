@@ -173,6 +173,7 @@ export default function AdminPage() {
 
 function MatchRow({ match, markets }: { match: Match; markets: Market[] }) {
   const matchMarkets = markets.filter((m) => m.match_id === match.id);
+  const hasMarkets = matchMarkets.length > 0;
   return (
     <div className="glass-card rounded-lg p-3 flex items-center justify-between">
       <div className="min-w-0">
@@ -187,24 +188,33 @@ function MatchRow({ match, markets }: { match: Match; markets: Market[] }) {
           })}
           {" · "}
           {new Date(match.match_date).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-          {matchMarkets.length > 0 && (
+          {hasMarkets ? (
             <span className="text-indigo-400 ml-1.5">
               · {matchMarkets.length} market{matchMarkets.length > 1 ? "s" : ""}
             </span>
+          ) : (
+            <span className="text-orange-400/70 ml-1.5">· No markets</span>
           )}
         </p>
       </div>
-      <span
-        className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-          match.status === "upcoming"
-            ? "bg-blue-500/10 text-blue-400"
-            : match.status === "live"
-              ? "bg-green-500/10 text-green-400"
-              : "bg-gray-500/10 text-gray-400"
-        }`}
-      >
-        {match.status}
-      </span>
+      <div className="flex items-center gap-2 shrink-0 ml-2">
+        {!hasMarkets && (
+          <span className="text-[9px] bg-orange-500/10 text-orange-400 px-1.5 py-0.5 rounded font-medium">
+            Needs markets
+          </span>
+        )}
+        <span
+          className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+            match.status === "upcoming"
+              ? "bg-blue-500/10 text-blue-400"
+              : match.status === "live"
+                ? "bg-green-500/10 text-green-400"
+                : "bg-gray-500/10 text-gray-400"
+          }`}
+        >
+          {match.status}
+        </span>
+      </div>
     </div>
   );
 }

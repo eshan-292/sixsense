@@ -28,6 +28,12 @@ export default function Footer() {
             >
               Leaderboard
             </Link>
+            <Link
+              href="/how-to-play"
+              className="text-[11px] text-gray-600 hover:text-gray-400 transition-colors"
+            >
+              How to Play
+            </Link>
             <span className="text-[10px] text-gray-700">
               Not real gambling &middot; Virtual coins only
             </span>
