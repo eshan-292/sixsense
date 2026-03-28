@@ -54,5 +54,26 @@ export default async function MatchPage({
     .eq("match_id", id)
     .order("created_at", { ascending: true });
 
-  return <MatchDetailClient match={match} initialMarkets={markets || []} />;
+  // Determine if betting is allowed on this match
+  // Only the next upcoming match (or a live match) allows betting
+  // All other future matches are locked
+  let bettingOpen = false;
+  if (match.status === "live") {
+    // Live matches have locked markets (already locked when going live)
+    bettingOpen = false;
+  } else if (match.status === "completed") {
+    bettingOpen = false;
+  } else {
+    // Check if this is the next upcoming match (earliest match_date with status "upcoming")
+    const { data: nextMatch } = await supabase
+      .from("matches")
+      .select("id")
+      .eq("status", "upcoming")
+      .order("match_date", { ascending: true })
+      .limit(1)
+      .single();
+    bettingOpen = nextMatch?.id === match.id;
+  }
+
+  return <MatchDetailClient match={match} initialMarkets={markets || []} bettingOpen={bettingOpen} />;
 }

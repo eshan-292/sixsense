@@ -17,9 +17,11 @@ const TIER_SECTIONS: { tier: MarketTier; label: string; icon: string; descriptio
 export default function MatchDetailClient({
   match,
   initialMarkets,
+  bettingOpen,
 }: {
   match: Match;
   initialMarkets: Market[];
+  bettingOpen: boolean;
 }) {
   const [markets, setMarkets] = useState<Market[]>(initialMarkets);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
@@ -283,6 +285,16 @@ export default function MatchDetailClient({
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pb-10">
+        {/* Betting locked banner */}
+        {!bettingOpen && match.status === "upcoming" && (
+          <div className="mt-4 glass-card rounded-xl p-4 border border-yellow-500/20 text-center">
+            <p className="text-sm text-yellow-400 font-medium">{"\u{1F512}"} Betting Not Open Yet</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Predictions will open once the current match concludes. Check back soon!
+            </p>
+          </div>
+        )}
+
         {/* Markets grouped by tier */}
         {markets.length === 0 ? (
           <div className="text-center py-16 glass-card rounded-xl mt-4">
@@ -316,10 +328,15 @@ export default function MatchDetailClient({
                       const counts = predictionCounts[market.id] || {};
                       const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
+                      // Override market to locked if betting isn't open
+                      const displayMarket = !bettingOpen && market.status === "open"
+                        ? { ...market, status: "locked" as const }
+                        : market;
+
                       return (
                         <MarketCard
                           key={market.id}
-                          market={market}
+                          market={displayMarket}
                           predictionCounts={counts}
                           totalPredictions={total}
                           existingPrediction={existingPred}
@@ -337,7 +354,7 @@ export default function MatchDetailClient({
             })}
 
             {/* Parlay Builder */}
-            {profile && match.status !== "completed" && (
+            {profile && bettingOpen && match.status !== "completed" && (
               <div className="mt-8">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="h-px flex-1 bg-gradient-to-r from-purple-500/50 to-transparent" />
