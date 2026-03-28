@@ -17,10 +17,30 @@ const TIER_CONFIG: Record<MarketTier, { label: string; color: string; bgColor: s
   hard: { label: "Bold Prediction", color: "text-red-400", bgColor: "bg-red-500/10 border-red-500/20" },
 };
 
+// Base virtual liquidity per option (prevents extreme odds with few bets)
+const BASE_LIQUIDITY = 500;
+
+function calculateLiveOdds(
+  options: { id: string; odds: number }[],
+  pools: Record<string, number>
+): Record<string, number> {
+  const totalPool = options.reduce(
+    (sum, o) => sum + (pools[o.id] || 0) + BASE_LIQUIDITY,
+    0
+  );
+  const odds: Record<string, number> = {};
+  for (const o of options) {
+    const optionPool = (pools[o.id] || 0) + BASE_LIQUIDITY;
+    odds[o.id] = Math.round((totalPool / optionPool) * 100) / 100;
+  }
+  return odds;
+}
+
 interface Props {
   market: Market;
   predictionCounts: Record<string, number>;
   totalPredictions: number;
+  predictionPools?: Record<string, number>;
   existingPrediction?: Prediction;
   userProfile: Profile | null;
   onPredictionPlaced: () => void;
@@ -33,6 +53,7 @@ export default function MarketCard({
   market,
   predictionCounts,
   totalPredictions,
+  predictionPools = {},
   existingPrediction,
   userProfile,
   onPredictionPlaced,
@@ -51,6 +72,10 @@ export default function MarketCard({
   const tier = market.tier || "easy";
   const tierConfig = TIER_CONFIG[tier];
   const ssrReward = SSR_REWARDS[tier];
+
+  // Calculate live odds from prediction pools
+  // Start with equal odds for all options; crowd shifts them
+  const liveOdds = calculateLiveOdds(market.options, predictionPools);
 
   const handlePredict = async () => {
     if (!selectedOption || !userProfile) return;
@@ -100,7 +125,7 @@ export default function MarketCard({
     }
   };
 
-  const selectedOdds = market.options.find((o) => o.id === selectedOption)?.odds || 0;
+  const selectedOdds = selectedOption ? (liveOdds[selectedOption] || 0) : 0;
   const potentialWin = Math.floor(wager * selectedOdds);
 
   return (
@@ -212,7 +237,7 @@ export default function MarketCard({
                         : "bg-gray-800/50 text-gray-500"
                     }`}
                   >
-                    Win {formatCoins(Math.floor(wager * option.odds))}
+                    {liveOdds[option.id]?.toFixed(2)}x · Win {formatCoins(Math.floor(wager * (liveOdds[option.id] || option.odds)))}
                   </span>
                   {totalPredictions > 0 && (
                     <span className="text-[10px] text-gray-600 min-w-[28px] text-right">

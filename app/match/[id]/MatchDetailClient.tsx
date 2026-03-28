@@ -28,6 +28,9 @@ export default function MatchDetailClient({
   const [predictionCounts, setPredictionCounts] = useState<
     Record<string, Record<string, number>>
   >({});
+  const [predictionPools, setPredictionPools] = useState<
+    Record<string, Record<string, number>>
+  >({});
   const [profile, setProfile] = useState<Profile | null>(null);
 
   // Parlay state
@@ -67,19 +70,24 @@ export default function MatchDetailClient({
     }
 
     const counts: Record<string, Record<string, number>> = {};
+    const pools: Record<string, Record<string, number>> = {};
     for (const market of markets) {
       const { data: allPreds } = await supabase
         .from("predictions")
-        .select("selected_option_id")
+        .select("selected_option_id, coins_wagered")
         .eq("market_id", market.id);
 
       counts[market.id] = {};
+      pools[market.id] = {};
       allPreds?.forEach((p) => {
         counts[market.id][p.selected_option_id] =
           (counts[market.id][p.selected_option_id] || 0) + 1;
+        pools[market.id][p.selected_option_id] =
+          (pools[market.id][p.selected_option_id] || 0) + p.coins_wagered;
       });
     }
     setPredictionCounts(counts);
+    setPredictionPools(pools);
   }, [markets]);
 
   useEffect(() => {
@@ -98,8 +106,17 @@ export default function MatchDetailClient({
   const parlayCount = parlayEntries.length;
 
   const combinedOdds = parlayEntries.reduce((acc, [marketId, optionId]) => {
+    const pools = predictionPools[marketId] || {};
     const market = markets.find((m) => m.id === marketId);
-    const option = market?.options.find((o) => o.id === optionId);
+    if (!market) return acc;
+    const hasRealBets = Object.values(pools).some((v) => v > 0);
+    if (hasRealBets) {
+      const BASE = 500;
+      const totalPool = market.options.reduce((s, o) => s + (pools[o.id] || 0) + BASE, 0);
+      const optPool = (pools[optionId] || 0) + BASE;
+      return acc * (totalPool / optPool);
+    }
+    const option = market.options.find((o) => o.id === optionId);
     return acc * (option?.odds || 1);
   }, 1);
 
@@ -327,6 +344,7 @@ export default function MatchDetailClient({
                       );
                       const counts = predictionCounts[market.id] || {};
                       const total = Object.values(counts).reduce((a, b) => a + b, 0);
+                      const pools = predictionPools[market.id] || {};
 
                       // Override market to locked if betting isn't open
                       const displayMarket = !bettingOpen && market.status === "open"
@@ -339,6 +357,7 @@ export default function MatchDetailClient({
                           market={displayMarket}
                           predictionCounts={counts}
                           totalPredictions={total}
+                          predictionPools={pools}
                           existingPrediction={existingPred}
                           userProfile={profile}
                           onPredictionPlaced={loadData}

@@ -72,6 +72,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid option" }, { status: 400 });
   }
 
+  // Calculate live odds from current prediction pools
+  const BASE_LIQUIDITY = 500;
+  const { data: allMarketPreds } = await supabase
+    .from("predictions")
+    .select("selected_option_id, coins_wagered")
+    .eq("market_id", market_id);
+
+  const pools: Record<string, number> = {};
+  allMarketPreds?.forEach((p: { selected_option_id: string; coins_wagered: number }) => {
+    pools[p.selected_option_id] = (pools[p.selected_option_id] || 0) + p.coins_wagered;
+  });
+
+  // Calculate current odds for the selected option (pre-bet)
+  // All options start with equal base liquidity — crowd shifts the odds
+  const totalEffectivePool = market.options.reduce(
+    (sum: number, o: { id: string }) => sum + (pools[o.id] || 0) + BASE_LIQUIDITY,
+    0
+  );
+  const selectedPool = (pools[selected_option_id] || 0) + BASE_LIQUIDITY;
+  const locked_odds = Math.round((totalEffectivePool / selectedPool) * 100) / 100;
+
   // Daily bonus: 500 coins for first prediction of the day
   let dailyBonusGranted = false;
   let bonusAmount = 0;
@@ -122,6 +143,7 @@ export async function POST(request: Request) {
     market_id,
     selected_option_id,
     coins_wagered,
+    locked_odds,
   });
 
   if (predError) {
@@ -138,5 +160,6 @@ export async function POST(request: Request) {
     daily_bonus: dailyBonusGranted ? 500 : 0,
     safety_net: safetyNetApplied,
     new_balance: newCoins,
+    locked_odds,
   });
 }

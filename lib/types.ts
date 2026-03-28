@@ -56,6 +56,7 @@ export interface Prediction {
   selected_option_id: string;
   coins_wagered: number;
   coins_won: number | null;
+  locked_odds: number | null;
   ssr_earned: number;
   created_at: string;
 }

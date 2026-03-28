@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Get the winning option's odds
+  // Validate the winning option exists
   const winningOption = market.options.find(
     (opt: { id: string }) => opt.id === correct_option_id
   );
@@ -82,8 +82,10 @@ export async function POST(request: Request) {
   if (predictions) {
     for (const pred of predictions) {
       const isWinner = pred.selected_option_id === correct_option_id;
+      // Use locked_odds if available (dynamic odds), fall back to static market odds
+      const payoutOdds = pred.locked_odds || winningOption.odds;
       const coinsWon = isWinner
-        ? Math.floor(pred.coins_wagered * winningOption.odds)
+        ? Math.floor(pred.coins_wagered * payoutOdds)
         : 0;
       totalPaidOut += coinsWon;
 
