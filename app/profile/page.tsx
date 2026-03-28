@@ -3,16 +3,18 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCoins } from "@/lib/utils";
-import type { Profile, Prediction, Market } from "@/lib/types";
+import type { Profile, Prediction, Market, Parlay } from "@/lib/types";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [predictions, setPredictions] = useState<
     (Prediction & { market?: Market })[]
   >([]);
+  const [parlays, setParlays] = useState<Parlay[]>([]);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const [claimMessage, setClaimMessage] = useState("");
+  const [ssrRank, setSsrRank] = useState<number | null>(null);
   const supabase = createClient();
 
   async function load() {
@@ -31,6 +33,15 @@ export default function ProfilePage() {
       .single();
     setProfile(p);
 
+    // Get SSR rank
+    if (p) {
+      const { count } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true })
+        .gt("ssr", p.ssr ?? 0);
+      setSsrRank((count ?? 0) + 1);
+    }
+
     const { data: preds } = await supabase
       .from("predictions")
       .select("*, market:markets(*)")
@@ -39,6 +50,16 @@ export default function ProfilePage() {
       .limit(20);
 
     setPredictions(preds || []);
+
+    // Load parlays
+    const { data: parlayData } = await supabase
+      .from("parlays")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    setParlays(parlayData || []);
     setLoading(false);
   }
 
@@ -74,7 +95,7 @@ export default function ProfilePage() {
     if (error) {
       setClaimMessage("Failed to claim bonus");
     } else {
-      setClaimMessage(`+🪙 ${bonus} coins claimed!`);
+      setClaimMessage(`+${bonus} coins claimed!`);
       setProfile({ ...profile, coins: profile.coins + bonus, last_daily_bonus: new Date().toISOString() });
     }
     setClaiming(false);
@@ -100,7 +121,7 @@ export default function ProfilePage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center px-4 max-w-sm">
           <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">🏏</span>
+            <span className="text-3xl">{"\u{1F3CF}"}</span>
           </div>
           <h2 className="text-xl font-bold text-white mb-2">Join SixSense</h2>
           <p className="text-sm text-gray-500 mb-5">
@@ -137,6 +158,9 @@ export default function ProfilePage() {
   const totalLost = predictions
     .filter((p) => p.coins_won !== null && p.coins_won === 0)
     .reduce((sum, p) => sum + p.coins_wagered, 0);
+
+  const parlayWins = parlays.filter((p) => p.status === "won").length;
+  const parlayLosses = parlays.filter((p) => p.status === "lost").length;
 
   return (
     <div className="min-h-screen">
@@ -175,9 +199,39 @@ export default function ProfilePage() {
               </div>
               <div className="text-right shrink-0">
                 <p className="text-2xl font-bold text-yellow-400">
-                  🪙 {formatCoins(profile.coins)}
+                  {formatCoins(profile.coins)}
                 </p>
                 <p className="text-[10px] text-gray-600">Total Coins</p>
+              </div>
+            </div>
+
+            {/* SSR Highlight */}
+            <div className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-500/20 rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-purple-300 font-medium">SixSense Rating (SSR)</p>
+                  <p className="text-3xl font-bold text-purple-400">{profile.ssr ?? 0}</p>
+                </div>
+                <div className="text-right">
+                  {ssrRank && (
+                    <p className="text-lg font-bold text-indigo-400">#{ssrRank}</p>
+                  )}
+                  <p className="text-[10px] text-gray-500">Global Rank</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-purple-500/20">
+                <div className="text-center">
+                  <p className="text-sm font-bold text-orange-400">
+                    {(profile.current_streak ?? 0) > 0 ? `${profile.current_streak}` : "0"}
+                  </p>
+                  <p className="text-[10px] text-gray-600">Current Streak</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-green-400">
+                    {profile.ssr_today ?? 0}
+                  </p>
+                  <p className="text-[10px] text-gray-600">SSR Today</p>
+                </div>
               </div>
             </div>
 
@@ -195,9 +249,9 @@ export default function ProfilePage() {
               </div>
               <div className="bg-gray-800/40 rounded-lg p-2.5 text-center">
                 <p className="text-lg font-bold text-orange-400">
-                  {profile.win_streak > 0 ? `🔥${profile.win_streak}` : "0"}
+                  {profile.win_streak > 0 ? `${profile.win_streak}` : "0"}
                 </p>
-                <p className="text-[10px] text-gray-600">Streak</p>
+                <p className="text-[10px] text-gray-600">Win Streak</p>
               </div>
               <div className="bg-gray-800/40 rounded-lg p-2.5 text-center">
                 <p className="text-lg font-bold text-purple-400">
@@ -213,7 +267,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-semibold text-white flex items-center gap-1.5">
-                  🎁 Daily Bonus
+                  Daily Bonus
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Claim 500 free coins every day
@@ -225,11 +279,11 @@ export default function ProfilePage() {
                   disabled={claiming}
                   className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-all disabled:opacity-50 shadow-lg shadow-green-500/20"
                 >
-                  {claiming ? "Claiming..." : "Claim 🪙 500"}
+                  {claiming ? "Claiming..." : "Claim 500 Coins"}
                 </button>
               ) : (
                 <span className="text-xs text-gray-500 bg-gray-800/50 px-3 py-2 rounded-lg">
-                  Claimed today ✓
+                  Claimed today
                 </span>
               )}
             </div>
@@ -245,13 +299,13 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="glass-card rounded-xl p-3 text-center">
                 <p className="text-lg font-bold text-green-400">
-                  +🪙 {formatCoins(totalWon)}
+                  +{formatCoins(totalWon)}
                 </p>
                 <p className="text-[10px] text-gray-600">Total Won</p>
               </div>
               <div className="glass-card rounded-xl p-3 text-center">
                 <p className="text-lg font-bold text-red-400">
-                  -🪙 {formatCoins(totalLost)}
+                  -{formatCoins(totalLost)}
                 </p>
                 <p className="text-[10px] text-gray-600">Total Lost</p>
               </div>
@@ -261,6 +315,75 @@ export default function ProfilePage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pb-10">
+        {/* Parlay History */}
+        {parlays.length > 0 && (
+          <>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-px flex-1 bg-gradient-to-r from-purple-500/50 to-transparent" />
+              <h2 className="text-sm font-semibold text-purple-400 uppercase tracking-wider">
+                Parlay History
+              </h2>
+              <div className="h-px flex-1 bg-gradient-to-l from-purple-500/50 to-transparent" />
+            </div>
+
+            <div className="glass-card rounded-xl p-3 mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-gray-400">
+                  {parlays.length} parlays ({parlayWins}W / {parlayLosses}L)
+                </p>
+              </div>
+              <div className="space-y-2">
+                {parlays.map((parlay) => {
+                  const preds = parlay.predictions as { market_id: string; selected_option_id: string }[];
+                  return (
+                    <div
+                      key={parlay.id}
+                      className={`rounded-lg p-3 border-l-2 bg-gray-800/30 ${
+                        parlay.status === "won"
+                          ? "border-l-green-500"
+                          : parlay.status === "lost"
+                            ? "border-l-red-500"
+                            : "border-l-blue-500"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs text-gray-400">
+                            {preds.length} picks at {Number(parlay.combined_odds).toFixed(1)}x
+                          </p>
+                          <p className="text-sm text-white font-medium">
+                            Wagered {formatCoins(parlay.coins_wagered)} coins
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          {parlay.status === "active" && (
+                            <span className="text-xs bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full font-medium">
+                              Active
+                            </span>
+                          )}
+                          {parlay.status === "won" && (
+                            <span className="text-xs bg-green-500/10 text-green-400 px-2.5 py-1 rounded-full font-medium">
+                              +{formatCoins(parlay.coins_won ?? 0)} coins
+                            </span>
+                          )}
+                          {parlay.status === "lost" && (
+                            <span className="text-xs bg-red-500/10 text-red-400 px-2.5 py-1 rounded-full font-medium">
+                              Lost
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {parlay.ssr_earned !== null && parlay.ssr_earned > 0 && (
+                        <p className="text-[10px] text-purple-400 mt-1">+{parlay.ssr_earned} SSR</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+
         {/* Prediction History */}
         <div className="flex items-center gap-2 mb-4">
           <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/50 to-transparent" />
@@ -272,7 +395,7 @@ export default function ProfilePage() {
 
         {predictions.length === 0 ? (
           <div className="text-center py-16 glass-card rounded-xl">
-            <p className="text-4xl mb-3">🔮</p>
+            <p className="text-4xl mb-3">{"\u{1F52E}"}</p>
             <p className="text-gray-400">No predictions yet</p>
             <p className="text-gray-600 text-xs mt-1">
               Head to a match and start predicting!
@@ -311,19 +434,24 @@ export default function ProfilePage() {
                         {selectedLabel}
                       </span>
                       <span className="text-[10px] text-gray-600">
-                        Wagered 🪙 {formatCoins(pred.coins_wagered)}
+                        Wagered {formatCoins(pred.coins_wagered)} coins
                       </span>
+                      {pred.ssr_earned !== undefined && pred.ssr_earned !== 0 && (
+                        <span className={`text-[10px] ${pred.ssr_earned > 0 ? "text-purple-400" : "text-red-400"}`}>
+                          {pred.ssr_earned > 0 ? "+" : ""}{pred.ssr_earned} SSR
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="shrink-0 ml-3">
                     {isPending && (
                       <span className="text-xs bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-full font-medium">
-                        ⏳ Pending
+                        Pending
                       </span>
                     )}
                     {isWin && (
                       <span className="text-xs bg-green-500/10 text-green-400 px-2.5 py-1 rounded-full font-medium">
-                        +🪙 {formatCoins(pred.coins_won!)}
+                        +{formatCoins(pred.coins_won!)} coins
                       </span>
                     )}
                     {isLoss && (

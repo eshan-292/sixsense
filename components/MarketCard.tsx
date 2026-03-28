@@ -3,7 +3,19 @@
 import { useState } from "react";
 import { formatCoins } from "@/lib/utils";
 import { useToast } from "./Toast";
-import type { Market, Prediction, Profile } from "@/lib/types";
+import type { Market, MarketTier, Prediction, Profile } from "@/lib/types";
+
+const SSR_REWARDS: Record<MarketTier, number> = {
+  easy: 10,
+  medium: 25,
+  hard: 50,
+};
+
+const TIER_CONFIG: Record<MarketTier, { label: string; color: string; bgColor: string }> = {
+  easy: { label: "Easy", color: "text-green-400", bgColor: "bg-green-500/10 border-green-500/20" },
+  medium: { label: "Medium", color: "text-yellow-400", bgColor: "bg-yellow-500/10 border-yellow-500/20" },
+  hard: { label: "Hard", color: "text-red-400", bgColor: "bg-red-500/10 border-red-500/20" },
+};
 
 interface Props {
   market: Market;
@@ -12,6 +24,9 @@ interface Props {
   existingPrediction?: Prediction;
   userProfile: Profile | null;
   onPredictionPlaced: () => void;
+  parlayMode?: boolean;
+  isParlaySelected?: boolean;
+  onParlayToggle?: (marketId: string, optionId: string | null) => void;
 }
 
 export default function MarketCard({
@@ -21,6 +36,9 @@ export default function MarketCard({
   existingPrediction,
   userProfile,
   onPredictionPlaced,
+  parlayMode,
+  isParlaySelected,
+  onParlayToggle,
 }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [wager, setWager] = useState(200);
@@ -30,6 +48,9 @@ export default function MarketCard({
 
   const isLocked = market.status !== "open";
   const hasPredicted = !!existingPrediction;
+  const tier = market.tier || "easy";
+  const tierConfig = TIER_CONFIG[tier];
+  const ssrReward = SSR_REWARDS[tier];
 
   const handlePredict = async () => {
     if (!selectedOption || !userProfile) return;
@@ -60,12 +81,20 @@ export default function MarketCard({
       if (!res.ok) throw new Error(data.error || "Failed to place prediction");
 
       const pickedLabel = market.options.find((o) => o.id === selectedOption)?.label;
-      showToast(`Prediction placed! "${pickedLabel}" for 🪙 ${wager}`, "success");
+      let toastMsg = `Prediction placed! "${pickedLabel}" for ${wager} coins`;
+      if (data.daily_bonus > 0) {
+        toastMsg += ` | +${data.daily_bonus} daily bonus!`;
+      }
+      if (data.safety_net) {
+        toastMsg += ` | Safety net applied - balance restored to 2,000`;
+      }
+      showToast(toastMsg, "success");
       onPredictionPlaced();
       setSelectedOption(null);
-    } catch (err: any) {
-      setError(err.message);
-      showToast(err.message, "error");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      setError(message);
+      showToast(message, "error");
     } finally {
       setLoading(false);
     }
@@ -75,10 +104,16 @@ export default function MarketCard({
   const potentialWin = Math.floor(wager * selectedOdds);
 
   return (
-    <div className="glass-card rounded-xl p-4">
+    <div className={`glass-card rounded-xl p-4 ${isParlaySelected ? "ring-2 ring-indigo-500/50" : ""}`}>
       <div className="flex items-start justify-between mb-3">
         <h3 className="text-sm font-semibold text-white">{market.question}</h3>
-        <div className="shrink-0 ml-2">
+        <div className="shrink-0 ml-2 flex items-center gap-1.5">
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium border ${tierConfig.bgColor}`}>
+            <span className={tierConfig.color}>{tierConfig.label}</span>
+          </span>
+          <span className="text-[10px] bg-purple-500/10 border border-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full font-medium">
+            +{ssrReward} SSR
+          </span>
           {market.status === "settled" && (
             <span className="text-[10px] bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full font-medium">
               Settled
@@ -116,9 +151,15 @@ export default function MarketCard({
           return (
             <button
               key={option.id}
-              onClick={() =>
-                !isLocked && !hasPredicted && setSelectedOption(option.id)
-              }
+              onClick={() => {
+                if (isLocked || hasPredicted) return;
+                if (parlayMode && onParlayToggle) {
+                  onParlayToggle(market.id, isSelected ? null : option.id);
+                  setSelectedOption(isSelected ? null : option.id);
+                } else {
+                  setSelectedOption(option.id);
+                }
+              }}
               disabled={isLocked || hasPredicted}
               className={`w-full relative overflow-hidden rounded-lg border p-3 text-left transition-all ${
                 isCorrect
@@ -146,10 +187,10 @@ export default function MarketCard({
               <div className="relative flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {isPredicted && !isCorrect && market.status !== "settled" && (
-                    <span className="text-xs">✓</span>
+                    <span className="text-xs">&#10003;</span>
                   )}
-                  {isCorrect && <span className="text-xs">🏆</span>}
-                  {isWrongPick && <span className="text-xs">✗</span>}
+                  {isCorrect && <span className="text-xs">&#127942;</span>}
+                  {isWrongPick && <span className="text-xs">&#10007;</span>}
                   {isSelected && !isPredicted && (
                     <span className="w-2 h-2 rounded-full bg-indigo-400" />
                   )}
@@ -192,18 +233,23 @@ export default function MarketCard({
             <p className="text-xs text-indigo-300">
               You wagered{" "}
               <span className="font-semibold">
-                🪙 {formatCoins(existingPrediction!.coins_wagered)}
+                {formatCoins(existingPrediction!.coins_wagered)} coins
               </span>
               {existingPrediction!.coins_won !== null && (
                 <span>
-                  {" → "}
+                  {" -> "}
                   {existingPrediction!.coins_won > 0 ? (
                     <span className="text-green-400 font-semibold">
-                      Won 🪙 {formatCoins(existingPrediction!.coins_won)}
+                      Won {formatCoins(existingPrediction!.coins_won)} coins
                     </span>
                   ) : (
                     <span className="text-red-400 font-semibold">Lost</span>
                   )}
+                </span>
+              )}
+              {existingPrediction!.ssr_earned !== undefined && existingPrediction!.ssr_earned !== 0 && (
+                <span className={`ml-1 ${existingPrediction!.ssr_earned > 0 ? "text-purple-400" : "text-red-400"}`}>
+                  ({existingPrediction!.ssr_earned > 0 ? "+" : ""}{existingPrediction!.ssr_earned} SSR)
                 </span>
               )}
             </p>
@@ -213,7 +259,7 @@ export default function MarketCard({
                 const pickedOption = market.options.find(
                   (o) => o.id === existingPrediction!.selected_option_id
                 );
-                const text = `🏏 I predicted "${pickedOption?.label}" on "${market.question}" with ${formatCoins(existingPrediction!.coins_wagered)} coins on SixSense!${existingPrediction!.coins_won !== null && existingPrediction!.coins_won > 0 ? ` Won ${formatCoins(existingPrediction!.coins_won)} coins! 🎉` : ""}`;
+                const text = `I predicted "${pickedOption?.label}" on "${market.question}" with ${formatCoins(existingPrediction!.coins_wagered)} coins on SixSense!${existingPrediction!.coins_won !== null && existingPrediction!.coins_won > 0 ? ` Won ${formatCoins(existingPrediction!.coins_won)} coins!` : ""}`;
                 if (navigator.share) {
                   navigator.share({ text, url: window.location.href });
                 } else {
@@ -223,19 +269,19 @@ export default function MarketCard({
               }}
               className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors shrink-0 ml-2"
             >
-              Share →
+              Share
             </button>
           </div>
         </div>
       )}
 
-      {/* Wager UI */}
-      {!isLocked && !hasPredicted && selectedOption && userProfile && (
+      {/* Wager UI (only in non-parlay mode) */}
+      {!parlayMode && !isLocked && !hasPredicted && selectedOption && userProfile && (
         <div className="mt-4 p-3 bg-gray-800/30 rounded-lg border border-gray-700/30 space-y-3">
           <div className="flex items-center justify-between">
             <label className="text-xs text-gray-400">Wager Amount</label>
             <div className="flex items-center gap-1">
-              <span className="text-sm font-bold text-yellow-400">🪙 {wager}</span>
+              <span className="text-sm font-bold text-yellow-400">{wager} coins</span>
               <span className="text-[10px] text-gray-600">
                 / {formatCoins(userProfile.coins)}
               </span>
@@ -252,7 +298,7 @@ export default function MarketCard({
           />
           <div className="flex items-center justify-between text-[10px] text-gray-600">
             <span>100</span>
-            <span>Potential win: <span className="text-green-400 font-medium">🪙 {formatCoins(potentialWin)}</span></span>
+            <span>Potential win: <span className="text-green-400 font-medium">{formatCoins(potentialWin)} coins</span> | <span className="text-purple-400 font-medium">+{ssrReward} SSR</span></span>
             <span>{Math.min(1000, userProfile.coins)}</span>
           </div>
 
@@ -273,7 +319,7 @@ export default function MarketCard({
                 Placing...
               </span>
             ) : (
-              `Predict & Wager 🪙 ${wager}`
+              `Predict & Wager ${wager} coins`
             )}
           </button>
         </div>

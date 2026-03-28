@@ -6,7 +6,13 @@ import { getTeamColor, formatCoins } from "@/lib/utils";
 import MarketCard from "@/components/MarketCard";
 import ShareButton from "@/components/ShareButton";
 import Link from "next/link";
-import type { Match, Market, Prediction, Profile } from "@/lib/types";
+import type { Match, Market, MarketTier, Prediction, Profile } from "@/lib/types";
+
+const TIER_SECTIONS: { tier: MarketTier; label: string; icon: string; description: string }[] = [
+  { tier: "easy", label: "EASY CALLS", icon: "\u{1F7E2}", description: "1.5-2x odds" },
+  { tier: "medium", label: "CRICKET BRAIN", icon: "\u{1F7E1}", description: "2.5-4x odds" },
+  { tier: "hard", label: "BOLD CALLS", icon: "\u{1F534}", description: "5-15x odds" },
+];
 
 export default function MatchDetailClient({
   match,
@@ -21,6 +27,17 @@ export default function MatchDetailClient({
     Record<string, Record<string, number>>
   >({});
   const [profile, setProfile] = useState<Profile | null>(null);
+
+  // Parlay state
+  const [parlayMode, setParlayMode] = useState(false);
+  const [parlaySelections, setParlaySelections] = useState<
+    Record<string, string>
+  >({});
+  const [parlayWager, setParlayWager] = useState(200);
+  const [parlayLoading, setParlayLoading] = useState(false);
+  const [parlayError, setParlayError] = useState("");
+  const [parlaySuccess, setParlaySuccess] = useState("");
+
   const supabase = createClient();
 
   const loadData = useCallback(async () => {
@@ -70,6 +87,83 @@ export default function MatchDetailClient({
   const totalWagered = predictions.reduce((sum, p) => sum + p.coins_wagered, 0);
   const totalWon = predictions.reduce((sum, p) => sum + (p.coins_won || 0), 0);
 
+  // Group markets by tier
+  const marketsByTier = (tier: MarketTier) =>
+    markets.filter((m) => (m.tier || "easy") === tier);
+
+  // Parlay helpers
+  const parlayEntries = Object.entries(parlaySelections);
+  const parlayCount = parlayEntries.length;
+
+  const combinedOdds = parlayEntries.reduce((acc, [marketId, optionId]) => {
+    const market = markets.find((m) => m.id === marketId);
+    const option = market?.options.find((o) => o.id === optionId);
+    return acc * (option?.odds || 1);
+  }, 1);
+
+  const potentialParlayPayout = Math.floor(parlayWager * combinedOdds);
+
+  const handleParlayToggle = (marketId: string, optionId: string | null) => {
+    setParlaySelections((prev) => {
+      const next = { ...prev };
+      if (optionId === null) {
+        delete next[marketId];
+      } else {
+        if (Object.keys(next).length >= 4 && !next[marketId]) {
+          return prev; // max 4
+        }
+        next[marketId] = optionId;
+      }
+      return next;
+    });
+  };
+
+  const handlePlaceParlay = async () => {
+    if (parlayCount < 2) {
+      setParlayError("Select at least 2 markets for a parlay");
+      return;
+    }
+    if (!profile) return;
+    if (parlayWager > profile.coins) {
+      setParlayError("Not enough coins!");
+      return;
+    }
+
+    setParlayLoading(true);
+    setParlayError("");
+    setParlaySuccess("");
+
+    try {
+      const res = await fetch("/api/parlay", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          match_id: match.id,
+          predictions: parlayEntries.map(([market_id, selected_option_id]) => ({
+            market_id,
+            selected_option_id,
+          })),
+          coins_wagered: parlayWager,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to place parlay");
+
+      setParlaySuccess(
+        `Parlay placed! ${parlayCount} picks at ${combinedOdds.toFixed(1)}x odds. Potential payout: ${formatCoins(data.potential_payout)} coins`
+      );
+      setParlaySelections({});
+      setParlayMode(false);
+      loadData();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      setParlayError(message);
+    } finally {
+      setParlayLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <div className="hero-gradient">
@@ -79,7 +173,7 @@ export default function MatchDetailClient({
             href="/"
             className="inline-flex items-center text-xs text-gray-500 hover:text-gray-300 mb-3 transition-colors"
           >
-            ← Back to matches
+            &larr; Back to matches
           </Link>
 
           {/* Match Header */}
@@ -155,13 +249,13 @@ export default function MatchDetailClient({
 
             {match.venue && (
               <p className="text-xs text-gray-600 mt-5 text-center">
-                📍 {match.venue}
+                {match.venue}
               </p>
             )}
 
             <div className="mt-4 flex justify-center">
               <ShareButton
-                text={`🏏 I'm predicting ${match.team_a_short} vs ${match.team_b_short} on SixSense!`}
+                text={`I'm predicting ${match.team_a_short} vs ${match.team_b_short} on SixSense!`}
               />
             </div>
           </div>
@@ -174,12 +268,12 @@ export default function MatchDetailClient({
                 <p className="text-[10px] text-gray-500">Predictions</p>
               </div>
               <div className="glass-card rounded-xl p-3 text-center">
-                <p className="text-lg font-bold text-yellow-400">🪙 {formatCoins(totalWagered)}</p>
+                <p className="text-lg font-bold text-yellow-400">{formatCoins(totalWagered)}</p>
                 <p className="text-[10px] text-gray-500">Wagered</p>
               </div>
               <div className="glass-card rounded-xl p-3 text-center">
                 <p className={`text-lg font-bold ${totalWon > 0 ? "text-green-400" : "text-gray-500"}`}>
-                  {totalWon > 0 ? `+🪙 ${formatCoins(totalWon)}` : "—"}
+                  {totalWon > 0 ? `+${formatCoins(totalWon)}` : "\u2014"}
                 </p>
                 <p className="text-[10px] text-gray-500">Won</p>
               </div>
@@ -189,45 +283,199 @@ export default function MatchDetailClient({
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pb-10">
-        {/* Markets */}
-        <div className="flex items-center gap-2 mb-4 mt-2">
-          <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/50 to-transparent" />
-          <h2 className="text-sm font-semibold text-indigo-400 uppercase tracking-wider">
-            Prediction Markets
-          </h2>
-          <div className="h-px flex-1 bg-gradient-to-l from-indigo-500/50 to-transparent" />
-        </div>
-
+        {/* Markets grouped by tier */}
         {markets.length === 0 ? (
-          <div className="text-center py-16 glass-card rounded-xl">
-            <p className="text-4xl mb-3">🔮</p>
+          <div className="text-center py-16 glass-card rounded-xl mt-4">
+            <p className="text-4xl mb-3">{"\u{1F52E}"}</p>
             <p className="text-gray-400">No markets available yet.</p>
             <p className="text-gray-600 text-xs mt-1">
               Check back closer to match time!
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {markets.map((market) => {
-              const existingPred = predictions.find(
-                (p) => p.market_id === market.id
-              );
-              const counts = predictionCounts[market.id] || {};
-              const total = Object.values(counts).reduce((a, b) => a + b, 0);
+          <>
+            {TIER_SECTIONS.map(({ tier, label, icon, description }) => {
+              const tierMarkets = marketsByTier(tier);
+              if (tierMarkets.length === 0) return null;
 
               return (
-                <MarketCard
-                  key={market.id}
-                  market={market}
-                  predictionCounts={counts}
-                  totalPredictions={total}
-                  existingPrediction={existingPred}
-                  userProfile={profile}
-                  onPredictionPlaced={loadData}
-                />
+                <div key={tier} className="mt-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-px flex-1 bg-gradient-to-r from-indigo-500/50 to-transparent" />
+                    <h2 className="text-sm font-semibold text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <span>{icon}</span> {label}
+                      <span className="text-[10px] text-gray-500 font-normal ml-1">({description})</span>
+                    </h2>
+                    <div className="h-px flex-1 bg-gradient-to-l from-indigo-500/50 to-transparent" />
+                  </div>
+                  <div className="space-y-3">
+                    {tierMarkets.map((market) => {
+                      const existingPred = predictions.find(
+                        (p) => p.market_id === market.id
+                      );
+                      const counts = predictionCounts[market.id] || {};
+                      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+
+                      return (
+                        <MarketCard
+                          key={market.id}
+                          market={market}
+                          predictionCounts={counts}
+                          totalPredictions={total}
+                          existingPrediction={existingPred}
+                          userProfile={profile}
+                          onPredictionPlaced={loadData}
+                          parlayMode={parlayMode}
+                          isParlaySelected={!!parlaySelections[market.id]}
+                          onParlayToggle={handleParlayToggle}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
-          </div>
+
+            {/* Parlay Builder */}
+            {profile && match.status !== "completed" && (
+              <div className="mt-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="h-px flex-1 bg-gradient-to-r from-purple-500/50 to-transparent" />
+                  <h2 className="text-sm font-semibold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                    {"\u26A1"} PARLAY BUILDER
+                  </h2>
+                  <div className="h-px flex-1 bg-gradient-to-l from-purple-500/50 to-transparent" />
+                </div>
+
+                <div className="glass-card rounded-xl p-4 border border-purple-500/20">
+                  {!parlayMode ? (
+                    <div className="text-center">
+                      <p className="text-sm text-gray-400 mb-3">
+                        Combine 2-4 predictions for massive odds! Higher risk, higher reward.
+                      </p>
+                      <button
+                        onClick={() => setParlayMode(true)}
+                        className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-medium px-6 py-2.5 rounded-lg transition-all shadow-lg shadow-purple-500/20"
+                      >
+                        Build a Parlay
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-sm font-semibold text-white">
+                          Select 2-4 markets above
+                        </p>
+                        <button
+                          onClick={() => {
+                            setParlayMode(false);
+                            setParlaySelections({});
+                            setParlayError("");
+                          }}
+                          className="text-xs text-gray-500 hover:text-gray-300"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+
+                      {/* Selected markets summary */}
+                      {parlayCount > 0 && (
+                        <div className="space-y-1.5 mb-3">
+                          {parlayEntries.map(([marketId, optionId]) => {
+                            const market = markets.find((m) => m.id === marketId);
+                            const option = market?.options.find(
+                              (o) => o.id === optionId
+                            );
+                            return (
+                              <div
+                                key={marketId}
+                                className="flex items-center justify-between bg-gray-800/50 rounded-lg px-3 py-2"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs text-gray-400 truncate">
+                                    {market?.question}
+                                  </p>
+                                  <p className="text-sm text-white font-medium">
+                                    {option?.label}
+                                  </p>
+                                </div>
+                                <span className="text-xs font-mono text-indigo-400 ml-2">
+                                  {option?.odds}x
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Combined odds display */}
+                      <div className="bg-gray-800/30 rounded-lg p-3 mb-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs text-gray-400">Combined Odds</span>
+                          <span className="text-lg font-bold text-purple-400">
+                            {combinedOdds.toFixed(1)}x
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs text-gray-400">Wager</label>
+                          <span className="text-sm font-bold text-yellow-400">
+                            {parlayWager} coins
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={100}
+                          max={Math.min(2000, profile.coins)}
+                          step={100}
+                          value={parlayWager}
+                          onChange={(e) => setParlayWager(Number(e.target.value))}
+                          className="w-full mt-2"
+                        />
+                        <div className="flex items-center justify-between text-[10px] text-gray-600 mt-1">
+                          <span>100</span>
+                          <span>
+                            Potential payout:{" "}
+                            <span className="text-green-400 font-medium">
+                              {formatCoins(potentialParlayPayout)} coins
+                            </span>
+                          </span>
+                          <span>{Math.min(2000, profile.coins)}</span>
+                        </div>
+                      </div>
+
+                      {parlayError && (
+                        <p className="text-xs text-red-400 bg-red-500/10 px-2 py-1 rounded mb-3">
+                          {parlayError}
+                        </p>
+                      )}
+                      {parlaySuccess && (
+                        <p className="text-xs text-green-400 bg-green-500/10 px-2 py-1 rounded mb-3">
+                          {parlaySuccess}
+                        </p>
+                      )}
+
+                      <button
+                        onClick={handlePlaceParlay}
+                        disabled={parlayLoading || parlayCount < 2}
+                        className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-medium py-2.5 rounded-lg transition-all disabled:opacity-50 shadow-lg shadow-purple-500/20"
+                      >
+                        {parlayLoading ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            Placing Parlay...
+                          </span>
+                        ) : parlayCount < 2 ? (
+                          `Select ${2 - parlayCount} more market${2 - parlayCount > 1 ? "s" : ""}`
+                        ) : (
+                          `Place Parlay (${parlayCount} picks at ${combinedOdds.toFixed(1)}x)`
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

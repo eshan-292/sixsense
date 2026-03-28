@@ -10,6 +10,9 @@ export interface Profile {
   best_streak: number;
   last_daily_bonus: string | null;
   is_admin: boolean;
+  ssr: number;
+  ssr_today: number;
+  current_streak: number;
   created_at: string;
 }
 
@@ -32,6 +35,8 @@ export interface MarketOption {
   odds: number;
 }
 
+export type MarketTier = "easy" | "medium" | "hard";
+
 export interface Market {
   id: string;
   match_id: string;
@@ -40,6 +45,7 @@ export interface Market {
   options: MarketOption[];
   status: "open" | "locked" | "settled";
   correct_option_id: string | null;
+  tier: MarketTier;
   created_at: string;
 }
 
@@ -50,6 +56,7 @@ export interface Prediction {
   selected_option_id: string;
   coins_wagered: number;
   coins_won: number | null;
+  ssr_earned: number;
   created_at: string;
 }
 
@@ -63,4 +70,20 @@ export interface LeaderboardEntry {
   total_losses: number;
   win_streak: number;
   best_streak: number;
+  ssr: number;
+  ssr_today: number;
+  current_streak: number;
+}
+
+export interface Parlay {
+  id: string;
+  user_id: string;
+  match_id: string;
+  predictions: { market_id: string; selected_option_id: string }[];
+  coins_wagered: number;
+  combined_odds: number;
+  status: "active" | "won" | "lost" | "partial";
+  coins_won: number | null;
+  ssr_earned: number | null;
+  created_at: string;
 }

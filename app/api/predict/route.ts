@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   // Check user has enough coins
   const { data: profile } = await supabase
     .from("profiles")
-    .select("coins")
+    .select("coins, total_predictions, last_daily_bonus")
     .eq("id", user.id)
     .single();
 
@@ -72,13 +72,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid option" }, { status: 400 });
   }
 
+  // Daily bonus: 500 coins for first prediction of the day
+  let dailyBonusGranted = false;
+  let bonusAmount = 0;
+  const now = new Date();
+  const lastBonus = profile.last_daily_bonus ? new Date(profile.last_daily_bonus) : null;
+  const isNewDay =
+    !lastBonus ||
+    now.getDate() !== lastBonus.getDate() ||
+    now.getMonth() !== lastBonus.getMonth() ||
+    now.getFullYear() !== lastBonus.getFullYear();
+
+  if (isNewDay) {
+    dailyBonusGranted = true;
+    bonusAmount = 500;
+  }
+
+  let newCoins = profile.coins - coins_wagered + bonusAmount;
+
+  // Safety net: if user drops below 1,000 coins, auto-refill to 2,000
+  let safetyNetApplied = false;
+  if (newCoins < 1000) {
+    const refill = 2000 - newCoins;
+    newCoins = 2000;
+    safetyNetApplied = true;
+    bonusAmount += refill;
+  }
+
   // Deduct coins and create prediction
+  const updateData: Record<string, unknown> = {
+    coins: newCoins,
+    total_predictions: profile.total_predictions + 1,
+  };
+  if (dailyBonusGranted) {
+    updateData.last_daily_bonus = now.toISOString();
+  }
+
   const { error: updateError } = await supabase
     .from("profiles")
-    .update({
-      coins: profile.coins - coins_wagered,
-      total_predictions: (profile as any).total_predictions + 1,
-    })
+    .update(updateData)
     .eq("id", user.id);
 
   if (updateError) {
@@ -101,5 +133,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to place prediction" }, { status: 500 });
   }
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({
+    success: true,
+    daily_bonus: dailyBonusGranted ? 500 : 0,
+    safety_net: safetyNetApplied,
+    new_balance: newCoins,
+  });
 }

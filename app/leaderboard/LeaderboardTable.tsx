@@ -5,14 +5,16 @@ import { formatCoins } from "@/lib/utils";
 import Link from "next/link";
 import type { LeaderboardEntry } from "@/lib/types";
 
-const medals = ["🥇", "🥈", "🥉"];
+const medals = ["\u{1F947}", "\u{1F948}", "\u{1F949}"];
 
 export default function LeaderboardTable({
   leaders,
   currentUserId,
+  primaryMetric = "ssr",
 }: {
   leaders: LeaderboardEntry[];
   currentUserId?: string;
+  primaryMetric?: "ssr" | "coins" | "streak" | "today";
 }) {
   const [search, setSearch] = useState("");
 
@@ -21,6 +23,44 @@ export default function LeaderboardTable({
         l.display_name?.toLowerCase().includes(search.toLowerCase())
       )
     : leaders;
+
+  const getMetricValue = (leader: LeaderboardEntry) => {
+    switch (primaryMetric) {
+      case "ssr":
+        return (
+          <span className="text-sm font-semibold text-purple-400">
+            {leader.ssr ?? 0} SSR
+          </span>
+        );
+      case "coins":
+        return (
+          <span className="text-sm font-semibold text-yellow-400">
+            {formatCoins(leader.coins)} coins
+          </span>
+        );
+      case "streak":
+        return (
+          <span className="text-sm font-semibold text-orange-400">
+            {leader.current_streak ?? 0} streak
+          </span>
+        );
+      case "today":
+        return (
+          <span className="text-sm font-semibold text-green-400">
+            {leader.ssr_today ?? 0} SSR
+          </span>
+        );
+    }
+  };
+
+  const getMetricLabel = () => {
+    switch (primaryMetric) {
+      case "ssr": return "SSR";
+      case "coins": return "Coins";
+      case "streak": return "Streak";
+      case "today": return "Today";
+    }
+  };
 
   return (
     <>
@@ -48,20 +88,19 @@ export default function LeaderboardTable({
                 Player
               </th>
               <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">
-                Coins
+                {getMetricLabel()}
               </th>
               <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 hidden sm:table-cell uppercase tracking-wider">
                 Record
               </th>
               <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 hidden sm:table-cell uppercase tracking-wider">
-                Streak
+                {primaryMetric === "ssr" ? "Coins" : "SSR"}
               </th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((leader, idx) => {
+            {filtered.map((leader) => {
               const isCurrentUser = leader.id === currentUserId;
-              // Find original rank (not filtered rank)
               const originalIdx = leaders.indexOf(leader);
               return (
                 <tr
@@ -105,9 +144,7 @@ export default function LeaderboardTable({
                     </Link>
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <span className="text-sm font-semibold text-yellow-400">
-                      🪙 {formatCoins(leader.coins)}
-                    </span>
+                    {getMetricValue(leader)}
                   </td>
                   <td className="py-3 px-4 text-right text-xs hidden sm:table-cell">
                     <span className="text-green-400 font-medium">
@@ -119,12 +156,14 @@ export default function LeaderboardTable({
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right text-xs hidden sm:table-cell">
-                    {leader.win_streak > 0 ? (
-                      <span className="text-orange-400 font-medium">
-                        🔥 {leader.win_streak}
+                    {primaryMetric === "ssr" ? (
+                      <span className="text-yellow-400 font-medium">
+                        {formatCoins(leader.coins)}
                       </span>
                     ) : (
-                      <span className="text-gray-700">-</span>
+                      <span className="text-purple-400 font-medium">
+                        {leader.ssr ?? 0}
+                      </span>
                     )}
                   </td>
                 </tr>
@@ -147,7 +186,7 @@ export default function LeaderboardTable({
               </>
             ) : (
               <>
-                <p className="text-4xl mb-3">🏆</p>
+                <p className="text-4xl mb-3">{"\u{1F3C6}"}</p>
                 <p className="text-gray-400">No players yet.</p>
                 <p className="text-gray-600 text-xs mt-1">
                   Sign up and start predicting!
