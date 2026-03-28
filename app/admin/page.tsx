@@ -66,7 +66,6 @@ export default function AdminPage() {
   const openMarkets = markets.filter((m) => m.status === "open");
   const lockedMarkets = markets.filter((m) => m.status === "locked");
   const pendingMarkets = [...openMarkets, ...lockedMarkets];
-  const upcomingMatches = matches.filter((m) => m.status === "upcoming");
   const liveMatches = matches.filter((m) => m.status === "live");
   const completedMatches = matches.filter((m) => m.status === "completed");
   const todayMatches = matches.filter((m) => {
@@ -74,6 +73,8 @@ export default function AdminPage() {
     const now = new Date();
     return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   });
+  const todayIds = new Set(todayMatches.map(m => m.id));
+  const upcomingMatches = matches.filter((m) => m.status === "upcoming" && !todayIds.has(m.id));
   const matchesWithoutMarkets = upcomingMatches.filter(
     m => !markets.some(mk => mk.match_id === m.id)
   );
