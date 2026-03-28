@@ -86,7 +86,7 @@ export default function ManageMatchesPage() {
 
     const dateTime = new Date(`${matchDate}T${matchTime}:00+05:30`);
 
-    const { error } = await supabase.from("matches").insert({
+    const { data: newMatch, error } = await supabase.from("matches").insert({
       team_a: tA.name,
       team_b: tB.name,
       team_a_short: tA.short,
@@ -94,10 +94,27 @@ export default function ManageMatchesPage() {
       match_date: dateTime.toISOString(),
       venue,
       status: "upcoming",
-    });
+    }).select().single();
 
-    if (error) { setMsg(`Error: ${error.message}`); return; }
-    setMsg("Match added!");
+    if (error || !newMatch) { setMsg(`Error: ${error?.message || "Failed"}`); return; }
+
+    // Auto-create all default market templates for the new match
+    const templates = getTemplatesForMatch(newMatch.id);
+    let marketCount = 0;
+    for (const t of templates) {
+      const options = t.options.map((o, i) => ({ id: `opt_${i}`, label: o.label, odds: o.odds }));
+      const { error: mErr } = await supabase.from("markets").insert({
+        match_id: newMatch.id,
+        question: t.question,
+        market_type: options.length === 2 ? "binary" : "multiple_choice",
+        options,
+        status: "open",
+        tier: t.tier || "easy",
+      });
+      if (!mErr) marketCount++;
+    }
+
+    setMsg(`Match added with ${marketCount} markets!`);
     setTeamA("");
     setTeamB("");
     setMatchDate("");
@@ -522,7 +539,7 @@ export default function ManageMatchesPage() {
               disabled={creatingTemplates}
               className="text-[11px] bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-600/30 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
             >
-              {creatingTemplates ? "Creating..." : "Create All 4 Templates at Once"}
+              {creatingTemplates ? "Creating..." : `Create All ${getTemplatesForMatch(selectedMatchId).length} Templates`}
             </button>
           </div>
         )}
