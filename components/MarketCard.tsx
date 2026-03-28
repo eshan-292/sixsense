@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { formatCoins } from "@/lib/utils";
 import { useToast } from "./Toast";
+import PredictionShareCard from "./PredictionShareCard";
 import type { Market, MarketTier, Prediction, Profile } from "@/lib/types";
 
 const SSR_REWARDS: Record<MarketTier, number> = {
@@ -47,6 +48,8 @@ interface Props {
   parlayMode?: boolean;
   isParlaySelected?: boolean;
   onParlayToggle?: (marketId: string, optionId: string | null) => void;
+  matchTeams?: string;
+  matchUrl?: string;
 }
 
 export default function MarketCard({
@@ -60,11 +63,20 @@ export default function MarketCard({
   parlayMode,
   isParlaySelected,
   onParlayToggle,
+  matchTeams = "",
+  matchUrl = "",
 }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [wager, setWager] = useState(200);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showShareCard, setShowShareCard] = useState(false);
+  const [shareCardData, setShareCardData] = useState<{
+    selectedOption: string;
+    odds: number;
+    wager: number;
+    potentialWin: number;
+  } | null>(null);
   const { showToast } = useToast();
 
   const isLocked = market.status !== "open";
@@ -76,6 +88,31 @@ export default function MarketCard({
   // Calculate live odds from prediction pools
   // Start with equal odds for all options; crowd shifts them
   const liveOdds = calculateLiveOdds(market.options, predictionPools);
+
+  // Track previous odds for flash animation
+  const prevOddsRef = useRef<Record<string, number>>({});
+  const [oddsFlash, setOddsFlash] = useState<Record<string, "up" | "down">>({});
+
+  useEffect(() => {
+    const prev = prevOddsRef.current;
+    const flashes: Record<string, "up" | "down"> = {};
+    let hasFlash = false;
+
+    for (const optId of Object.keys(liveOdds)) {
+      if (prev[optId] !== undefined && prev[optId] !== liveOdds[optId]) {
+        flashes[optId] = liveOdds[optId] > prev[optId] ? "up" : "down";
+        hasFlash = true;
+      }
+    }
+
+    prevOddsRef.current = { ...liveOdds };
+
+    if (hasFlash) {
+      setOddsFlash(flashes);
+      const timer = setTimeout(() => setOddsFlash({}), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [liveOdds]);
 
   const handlePredict = async () => {
     if (!selectedOption || !userProfile) return;
@@ -105,7 +142,9 @@ export default function MarketCard({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to place prediction");
 
-      const pickedLabel = market.options.find((o) => o.id === selectedOption)?.label;
+      const pickedOption = market.options.find((o) => o.id === selectedOption);
+      const pickedLabel = pickedOption?.label || "";
+      const lockedOdds = liveOdds[selectedOption] || pickedOption?.odds || 1;
       let toastMsg = `Prediction placed! "${pickedLabel}" for ${wager} coins`;
       if (data.daily_bonus > 0) {
         toastMsg += ` | +${data.daily_bonus} daily bonus!`;
@@ -114,6 +153,16 @@ export default function MarketCard({
         toastMsg += ` | Safety net applied - balance restored to 2,000`;
       }
       showToast(toastMsg, "success");
+
+      // Show share card
+      setShareCardData({
+        selectedOption: pickedLabel,
+        odds: lockedOdds,
+        wager,
+        potentialWin: Math.floor(wager * lockedOdds),
+      });
+      setShowShareCard(true);
+
       onPredictionPlaced();
       setSelectedOption(null);
     } catch (err: unknown) {
@@ -231,7 +280,13 @@ export default function MarketCard({
                 </div>
                 <div className="flex items-center gap-3">
                   <span
-                    className={`text-xs px-1.5 py-0.5 rounded ${
+                    className={`text-xs px-1.5 py-0.5 rounded transition-colors duration-300 ${
+                      oddsFlash[option.id] === "up"
+                        ? "odds-flash-up"
+                        : oddsFlash[option.id] === "down"
+                          ? "odds-flash-down"
+                          : ""
+                    } ${
                       isSelected
                         ? "bg-indigo-500/20 text-indigo-300"
                         : "bg-gray-800/50 text-gray-500"
@@ -354,6 +409,19 @@ export default function MarketCard({
         <p className="mt-3 text-xs text-gray-600 text-center">
           Sign in to make predictions
         </p>
+      )}
+
+      {showShareCard && shareCardData && (
+        <PredictionShareCard
+          matchTeams={matchTeams}
+          question={market.question}
+          selectedOption={shareCardData.selectedOption}
+          odds={shareCardData.odds}
+          wager={shareCardData.wager}
+          potentialWin={shareCardData.potentialWin}
+          matchUrl={matchUrl || (typeof window !== "undefined" ? window.location.href : "")}
+          onClose={() => setShowShareCard(false)}
+        />
       )}
     </div>
   );

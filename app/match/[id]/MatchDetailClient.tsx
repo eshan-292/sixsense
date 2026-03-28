@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getTeamColor, formatCoins } from "@/lib/utils";
 import MarketCard from "@/components/MarketCard";
+import LiveScoreWidget from "@/components/LiveScoreWidget";
+import ActivityFeed from "@/components/ActivityFeed";
 import ShareButton from "@/components/ShareButton";
+import WinCelebration from "@/components/WinCelebration";
 import Link from "next/link";
 import type { Match, Market, MarketTier, Prediction, Profile } from "@/lib/types";
 
@@ -42,6 +45,15 @@ export default function MatchDetailClient({
   const [parlayLoading, setParlayLoading] = useState(false);
   const [parlayError, setParlayError] = useState("");
   const [parlaySuccess, setParlaySuccess] = useState("");
+  const [winCelebration, setWinCelebration] = useState<{
+    marketId: string;
+    question: string;
+    selectedOption: string;
+    odds: number;
+    coinsWagered: number;
+    coinsWon: number;
+    ssrEarned: number;
+  } | null>(null);
 
   const supabase = createClient();
 
@@ -93,6 +105,83 @@ export default function MatchDetailClient({
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Detect winning predictions on settled markets and show celebration
+  useEffect(() => {
+    if (predictions.length === 0 || markets.length === 0) return;
+
+    for (const pred of predictions) {
+      const market = markets.find((m) => m.id === pred.market_id);
+      if (!market || market.status !== "settled") continue;
+      if (!pred.coins_won || pred.coins_won <= 0) continue;
+
+      const dismissKey = `sixsense_win_dismissed_${pred.market_id}`;
+      if (typeof window !== "undefined" && localStorage.getItem(dismissKey)) continue;
+
+      const option = market.options.find((o) => o.id === pred.selected_option_id);
+      setWinCelebration({
+        marketId: pred.market_id,
+        question: market.question,
+        selectedOption: option?.label || "",
+        odds: pred.locked_odds || option?.odds || 1,
+        coinsWagered: pred.coins_wagered,
+        coinsWon: pred.coins_won,
+        ssrEarned: pred.ssr_earned || 0,
+      });
+      break; // Show one at a time
+    }
+  }, [predictions, markets]);
+
+  // Real-time subscription to prediction inserts for live odds updates
+  useEffect(() => {
+    const marketIds = markets.map((m) => m.id);
+    if (marketIds.length === 0) return;
+
+    const channel = supabase
+      .channel(`match-predictions-${match.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "predictions",
+          filter: `market_id=in.(${marketIds.join(",")})`,
+        },
+        (payload) => {
+          const newPred = payload.new as {
+            market_id: string;
+            selected_option_id: string;
+            coins_wagered: number;
+          };
+
+          // Update prediction counts
+          setPredictionCounts((prev) => {
+            const updated = { ...prev };
+            if (!updated[newPred.market_id]) updated[newPred.market_id] = {};
+            updated[newPred.market_id] = { ...updated[newPred.market_id] };
+            updated[newPred.market_id][newPred.selected_option_id] =
+              (updated[newPred.market_id][newPred.selected_option_id] || 0) + 1;
+            return updated;
+          });
+
+          // Update prediction pools (drives live odds recalculation)
+          setPredictionPools((prev) => {
+            const updated = { ...prev };
+            if (!updated[newPred.market_id]) updated[newPred.market_id] = {};
+            updated[newPred.market_id] = { ...updated[newPred.market_id] };
+            updated[newPred.market_id][newPred.selected_option_id] =
+              (updated[newPred.market_id][newPred.selected_option_id] || 0) +
+              newPred.coins_wagered;
+            return updated;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [markets, match.id, supabase]);
 
   const totalWagered = predictions.reduce((sum, p) => sum + p.coins_wagered, 0);
   const totalWon = predictions.reduce((sum, p) => sum + (p.coins_won || 0), 0);
@@ -275,9 +364,19 @@ export default function MatchDetailClient({
             <div className="mt-4 flex justify-center">
               <ShareButton
                 text={`I'm predicting ${match.team_a_short} vs ${match.team_b_short} on SixSense!`}
+                matchTeams={`${match.team_a_short} vs ${match.team_b_short}`}
               />
             </div>
           </div>
+
+          {/* Live Score Widget */}
+          <LiveScoreWidget
+            teamA={match.team_a}
+            teamB={match.team_b}
+            teamAShort={match.team_a_short}
+            teamBShort={match.team_b_short}
+            matchStatus={match.status}
+          />
 
           {/* Your Stats for this match */}
           {profile && predictions.length > 0 && (
@@ -364,6 +463,8 @@ export default function MatchDetailClient({
                           parlayMode={parlayMode}
                           isParlaySelected={!!parlaySelections[market.id]}
                           onParlayToggle={handleParlayToggle}
+                          matchTeams={`${match.team_a_short} vs ${match.team_b_short}`}
+                          matchUrl={typeof window !== "undefined" ? window.location.href : ""}
                         />
                       );
                     })}
@@ -512,7 +613,55 @@ export default function MatchDetailClient({
             )}
           </>
         )}
+
+        {/* Recent Predictions - collapsible activity feed */}
+        <RecentPredictionsSection matchId={match.id} />
       </div>
+
+      {/* Win Celebration Modal */}
+      {winCelebration && (
+        <WinCelebration
+          matchTeams={`${match.team_a_short} vs ${match.team_b_short}`}
+          question={winCelebration.question}
+          selectedOption={winCelebration.selectedOption}
+          odds={winCelebration.odds}
+          coinsWagered={winCelebration.coinsWagered}
+          coinsWon={winCelebration.coinsWon}
+          ssrEarned={winCelebration.ssrEarned}
+          matchUrl={typeof window !== "undefined" ? window.location.href : ""}
+          onClose={() => {
+            const dismissKey = `sixsense_win_dismissed_${winCelebration.marketId}`;
+            localStorage.setItem(dismissKey, "1");
+            setWinCelebration(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function RecentPredictionsSection({ matchId }: { matchId: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-8">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-2 mb-3"
+      >
+        <div className="h-px flex-1 bg-gradient-to-r from-green-500/50 to-transparent" />
+        <h2 className="text-sm font-semibold text-green-400 uppercase tracking-wider flex items-center gap-1.5">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+          </span>
+          Recent Predictions
+          <span className="text-gray-500 text-[10px] font-normal ml-1">
+            {open ? "(collapse)" : "(expand)"}
+          </span>
+        </h2>
+        <div className="h-px flex-1 bg-gradient-to-l from-green-500/50 to-transparent" />
+      </button>
+      {open && <ActivityFeed matchId={matchId} />}
     </div>
   );
 }
