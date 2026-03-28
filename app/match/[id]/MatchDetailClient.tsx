@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getTeamColor, formatCoins } from "@/lib/utils";
 import MarketCard from "@/components/MarketCard";

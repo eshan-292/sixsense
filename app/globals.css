@@ -130,3 +130,28 @@ input[type="range"]::-webkit-slider-thumb {
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+/* Odds flash animations */
+@keyframes odds-flash-green {
+  0% { color: #4ade80; }
+  100% { color: inherit; }
+}
+@keyframes odds-flash-red {
+  0% { color: #f87171; }
+  100% { color: inherit; }
+}
+.odds-flash-up {
+  animation: odds-flash-green 1s ease-out;
+}
+.odds-flash-down {
+  animation: odds-flash-red 1s ease-out;
+}
+
+/* Activity feed slide-down */
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-12px); max-height: 0; }
+  to { opacity: 1; transform: translateY(0); max-height: 100px; }
+}
+.animate-slide-down {
+  animation: slide-down 0.35s ease-out;
+}

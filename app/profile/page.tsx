@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCoins } from "@/lib/utils";
 import type { Profile, Prediction, Market, Parlay } from "@/lib/types";
+import { computeEarnedAchievements, ACHIEVEMENTS } from "@/lib/achievements";
+import type { UserStats } from "@/lib/achievements";
+import AchievementBadge from "@/components/AchievementBadge";
+import AchievementsGrid from "@/components/AchievementsGrid";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -15,6 +19,10 @@ export default function ProfilePage() {
   const [claiming, setClaiming] = useState(false);
   const [claimMessage, setClaimMessage] = useState("");
   const [ssrRank, setSsrRank] = useState<number | null>(null);
+  const [showAllAchievements, setShowAllAchievements] = useState(false);
+  const [allPredictions, setAllPredictions] = useState<
+    (Prediction & { market?: Market })[]
+  >([]);
   const supabase = createClient();
 
   async function load() {
@@ -42,14 +50,15 @@ export default function ProfilePage() {
       setSsrRank((count ?? 0) + 1);
     }
 
-    const { data: preds } = await supabase
+    // Fetch all predictions for achievements
+    const { data: allPreds } = await supabase
       .from("predictions")
       .select("*, market:markets(*)")
       .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(20);
+      .order("created_at", { ascending: false });
 
-    setPredictions(preds || []);
+    setAllPredictions(allPreds || []);
+    setPredictions((allPreds || []).slice(0, 20));
 
     // Load parlays
     const { data: parlayData } = await supabase
@@ -162,6 +171,19 @@ export default function ProfilePage() {
   const parlayWins = parlays.filter((p) => p.status === "won").length;
   const parlayLosses = parlays.filter((p) => p.status === "lost").length;
 
+  const achievementResults = useMemo(() => {
+    if (!profile) return [];
+    const stats: UserStats = { profile, predictions: allPredictions, parlays };
+    return computeEarnedAchievements(stats);
+  }, [profile, allPredictions, parlays]);
+
+  const earnedIds = useMemo(
+    () => new Set(achievementResults.filter((r) => r.earned).map((r) => r.achievement.id)),
+    [achievementResults]
+  );
+
+  const earnedAchievements = achievementResults.filter((r) => r.earned);
+
   return (
     <div className="min-h-screen">
       <div className="hero-gradient">
@@ -260,6 +282,45 @@ export default function ProfilePage() {
                 <p className="text-[10px] text-gray-600">Best Streak</p>
               </div>
             </div>
+          </div>
+
+          {/* Achievements */}
+          <div className="glass-card rounded-xl p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-white flex items-center gap-1.5">
+                Achievements
+                <span className="text-[10px] text-gray-500 font-normal">
+                  {earnedAchievements.length}/{ACHIEVEMENTS.length}
+                </span>
+              </h3>
+              <button
+                onClick={() => setShowAllAchievements((v) => !v)}
+                className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
+              >
+                {showAllAchievements ? "Show Less" : "View All"}
+              </button>
+            </div>
+
+            {!showAllAchievements ? (
+              <div className="flex flex-wrap gap-2">
+                {earnedAchievements.length === 0 ? (
+                  <p className="text-xs text-gray-600">
+                    No achievements yet. Start predicting to earn badges!
+                  </p>
+                ) : (
+                  earnedAchievements.map(({ achievement }) => (
+                    <AchievementBadge
+                      key={achievement.id}
+                      achievement={achievement}
+                      earned={true}
+                      size="md"
+                    />
+                  ))
+                )}
+              </div>
+            ) : (
+              <AchievementsGrid earnedIds={earnedIds} />
+            )}
           </div>
 
           {/* Daily Bonus */}

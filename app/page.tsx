@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import MatchCard from "@/components/MatchCard";
 import NextMatchCountdown from "@/components/NextMatchCountdown";
+import LiveActivitySection from "@/components/LiveActivitySection";
 import { autoUpdateMatchStatuses } from "@/lib/auto-status";
 import type { Match } from "@/lib/types";
 import Link from "next/link";
@@ -208,6 +209,9 @@ export default async function Home() {
             </Link>
           </section>
         )}
+
+        {/* Live Predictions Activity Feed */}
+        <LiveActivitySection />
 
         {/* Mini Leaderboard */}
         {topPlayers && topPlayers.length > 0 && (

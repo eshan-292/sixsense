@@ -3,6 +3,7 @@ import { formatCoins } from "@/lib/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import UserAchievementBadges from "@/components/UserAchievementBadges";
 
 export const dynamic = "force-dynamic";
 
@@ -47,13 +48,21 @@ export default async function UserProfilePage({
     .gt("coins", profile.coins);
   const rank = (higherCount ?? 0) + 1;
 
-  // Get recent predictions with market info
-  const { data: predictions } = await supabase
+  // Get all predictions with market info (for achievements + display)
+  const { data: allPredictions } = await supabase
     .from("predictions")
-    .select("*, market:markets(question, options, status, correct_option_id)")
+    .select("*, market:markets(*)")
     .eq("user_id", id)
-    .order("created_at", { ascending: false })
-    .limit(10);
+    .order("created_at", { ascending: false });
+
+  const predictions = (allPredictions || []).slice(0, 10);
+
+  // Get parlays for achievements
+  const { data: parlayData } = await supabase
+    .from("parlays")
+    .select("*")
+    .eq("user_id", id)
+    .order("created_at", { ascending: false });
 
   const winRate =
     profile.total_predictions > 0
@@ -134,6 +143,13 @@ export default async function UserProfilePage({
                 <p className="text-[10px] text-gray-600">Best</p>
               </div>
             </div>
+
+            {/* Achievement Badges */}
+            <UserAchievementBadges
+              profile={profile}
+              predictions={allPredictions || []}
+              parlays={parlayData || []}
+            />
           </div>
         </div>
       </div>
