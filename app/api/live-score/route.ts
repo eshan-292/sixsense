@@ -2,8 +2,7 @@ import { NextRequest } from "next/server";
 
 /**
  * Live Score API — FREE, no API key needed
- * Uses the open-source cricbuzz-live proxy (scrapes Cricbuzz public data)
- * Fallback: direct Cricbuzz public endpoints
+ * Scrapes Cricbuzz public pages and their internal JSON API
  * Caches results for 30 seconds to be respectful
  */
 
@@ -28,16 +27,16 @@ interface LiveScoreData {
 }
 
 const cache = new Map<string, CachedResult>();
-const CACHE_TTL_MS = 30_000; // 30 seconds
+const CACHE_TTL_MS = 30_000;
 
-// Cricbuzz match ID cache (team pair → cricbuzz match ID)
+// Cache for Cricbuzz match IDs (lasts 10 minutes)
 const matchIdCache = new Map<string, { id: string; timestamp: number }>();
-const MATCH_ID_CACHE_TTL = 300_000; // 5 minutes
+const MATCH_ID_CACHE_TTL = 600_000;
 
 const TEAM_ALIASES: Record<string, string[]> = {
   csk: ["chennai super kings", "chennai", "csk"],
   mi: ["mumbai indians", "mumbai", "mi"],
-  rcb: ["royal challengers bengaluru", "royal challengers bangalore", "rcb", "bengaluru", "bangalore"],
+  rcb: ["royal challengers bengaluru", "royal challengers bangalore", "rcb"],
   kkr: ["kolkata knight riders", "kolkata", "kkr"],
   dc: ["delhi capitals", "delhi", "dc"],
   srh: ["sunrisers hyderabad", "hyderabad", "srh"],
@@ -68,76 +67,107 @@ function extractShortName(teamName: string): string {
 }
 
 /**
- * Strategy 1: Use cricbuzz-live open-source API (Vercel-hosted, scrapes Cricbuzz)
- * No API key, no limits, free forever
+ * Step 1: Find the Cricbuzz match ID by scraping the live scores page
  */
-async function fetchFromCricbuzzLive(teamA: string, teamB: string): Promise<LiveScoreData | null> {
+async function findCricbuzzMatchId(teamA: string, teamB: string): Promise<string | null> {
+  const cacheKey = getCacheKey(teamA, teamB);
+  const cached = matchIdCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < MATCH_ID_CACHE_TTL) {
+    return cached.id;
+  }
+
   try {
-    // Step 1: Get live matches list
-    const cacheKey = getCacheKey(teamA, teamB);
-    let cricMatchId = matchIdCache.get(cacheKey);
+    const res = await fetch("https://www.cricbuzz.com/cricket-match/live-scores", {
+      headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" },
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
 
-    if (!cricMatchId || Date.now() - cricMatchId.timestamp > MATCH_ID_CACHE_TTL) {
-      const listRes = await fetch("https://cricbuzz-live.vercel.app/v1/matches/live", {
-        cache: "no-store",
-        signal: AbortSignal.timeout(5000),
-      });
-
-      if (!listRes.ok) return null;
-      const listData = await listRes.json();
-
-      // Find the matching IPL match
-      const matchTypes = listData?.typeMatches || [];
-      for (const type of matchTypes) {
-        const series = type?.seriesMatches || [];
-        for (const s of series) {
-          const matches = s?.seriesAdWrapper?.matches || [];
-          for (const m of matches) {
-            const info = m?.matchInfo;
-            if (!info) continue;
-            const t1 = info?.team1?.teamSName || info?.team1?.teamName || "";
-            const t2 = info?.team2?.teamSName || info?.team2?.teamName || "";
-            const matchDesc = `${t1} ${t2} ${info?.team1?.teamName || ""} ${info?.team2?.teamName || ""}`;
-
-            if (teamMatches(matchDesc, teamA) && teamMatches(matchDesc, teamB)) {
-              cricMatchId = { id: String(info.matchId), timestamp: Date.now() };
-              matchIdCache.set(cacheKey, cricMatchId);
-              break;
-            }
-          }
-          if (cricMatchId && Date.now() - cricMatchId.timestamp < 1000) break;
-        }
-        if (cricMatchId && Date.now() - cricMatchId.timestamp < 1000) break;
+    // Extract match URLs: /live-cricket-scores/149618/rcb-vs-srh-...
+    const matchPattern = /\/live-cricket-scores\/(\d+)\/([^"]+)/g;
+    let match;
+    while ((match = matchPattern.exec(html)) !== null) {
+      const slug = match[2].toLowerCase().replace(/-/g, " ");
+      if (teamMatches(slug, teamA) && teamMatches(slug, teamB)) {
+        const id = match[1];
+        matchIdCache.set(cacheKey, { id, timestamp: Date.now() });
+        return id;
       }
     }
-
-    if (!cricMatchId) return null;
-
-    // Step 2: Get score for this match
-    const scoreRes = await fetch(`https://cricbuzz-live.vercel.app/v1/score/${cricMatchId.id}`, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
-
-    if (!scoreRes.ok) return null;
-    const scoreData = await scoreRes.json();
-
-    return parseCricbuzzLiveScore(scoreData);
+    return null;
   } catch {
     return null;
   }
 }
 
-function parseCricbuzzLiveScore(data: Record<string, unknown>): LiveScoreData | null {
+/**
+ * Step 2: Fetch score from Cricbuzz's internal mini-scorecard API
+ */
+async function fetchCricbuzzScore(matchId: string): Promise<LiveScoreData | null> {
+  try {
+    // Try the mini-scorecard API endpoint
+    const res = await fetch(
+      `https://www.cricbuzz.com/api/cricket-match/${matchId}/full-commentary/1`,
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+          Accept: "application/json",
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(8000),
+      }
+    );
+
+    if (!res.ok) {
+      // Try alternative endpoint
+      return await fetchCricbuzzScoreAlt(matchId);
+    }
+
+    const data = await res.json();
+    return parseCommentaryData(data);
+  } catch {
+    return await fetchCricbuzzScoreAlt(matchId);
+  }
+}
+
+/**
+ * Alternative: use the match score API
+ */
+async function fetchCricbuzzScoreAlt(matchId: string): Promise<LiveScoreData | null> {
+  try {
+    const res = await fetch(
+      `https://www.cricbuzz.com/api/html/cricket-scorecard/${matchId}`,
+      {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(8000),
+      }
+    );
+
+    if (!res.ok) return null;
+    const html = await res.text();
+    return parseScoreHtml(html, matchId);
+  } catch {
+    return null;
+  }
+}
+
+function parseCommentaryData(data: Record<string, unknown>): LiveScoreData | null {
   try {
     const miniscore = data.miniscore as Record<string, unknown> | undefined;
+    const matchHeader = data.matchHeader as Record<string, unknown> | undefined;
+
     if (!miniscore) {
-      // Try direct format
-      const status = (data.status as string) || (data.matchHeader as Record<string, unknown>)?.status as string || "";
+      // Fallback: just show status
+      const status = (matchHeader?.status as string) || "Match in progress";
       return {
         battingTeam: "Match",
         battingTeamShort: "",
-        score: status || "In Progress",
+        score: "—",
         overs: "",
         runRate: "0.00",
         requiredRunRate: null,
@@ -145,11 +175,12 @@ function parseCricbuzzLiveScore(data: Record<string, unknown>): LiveScoreData | 
         batsmen: [],
         bowler: null,
         lastSixBalls: [],
-        matchStatus: status || "Loading...",
+        matchStatus: status,
         isSecondInnings: false,
       };
     }
 
+    // Batting team
     const batTeam = miniscore.batTeam as Record<string, unknown> | undefined;
     const battingTeamName = (batTeam?.teamName as string) || "Unknown";
     const battingTeamShort = extractShortName(battingTeamName);
@@ -157,17 +188,26 @@ function parseCricbuzzLiveScore(data: Record<string, unknown>): LiveScoreData | 
     const inningsId = (miniscore.currentInningsId as number) || 1;
     const isSecondInnings = inningsId >= 2;
 
-    // Score
-    const runs = (miniscore.batTeamScore as Record<string, unknown>)?.inngs1 as Record<string, unknown> | undefined;
-    const score = runs
-      ? `${runs.runs || 0}/${runs.wickets || 0}`
-      : `${(miniscore as Record<string, unknown>).runs || 0}/${(miniscore as Record<string, unknown>).wickets || 0}`;
-    const overs = String(runs?.overs || (miniscore as Record<string, unknown>).overs || "0");
+    // Score from matchScoreDetails
+    const matchScore = miniscore.matchScoreDetails as Record<string, unknown> | undefined;
+    const inningsScores = matchScore?.inningsScoreList as Array<Record<string, unknown>> | undefined;
+
+    let score = "0/0";
+    let overs = "0";
+
+    if (inningsScores && inningsScores.length > 0) {
+      // Get the current (last) innings
+      const current = inningsScores[inningsScores.length - 1];
+      score = `${current.score || 0}/${current.wickets || 0}`;
+      overs = String(current.overs || "0");
+    }
 
     // Run rates
     const crr = String(miniscore.currentRunRate || "0.00");
     const rrr = miniscore.requiredRunRate ? String(miniscore.requiredRunRate) : null;
-    const target = miniscore.target ? Number(miniscore.target) : null;
+    const target = miniscore.remRunsToWin
+      ? Number(miniscore.remRunsToWin) + (inningsScores && inningsScores.length > 1 ? Number(inningsScores[inningsScores.length - 1]?.score || 0) : 0)
+      : null;
 
     // Batsmen
     const batsmen: { name: string; runs: string }[] = [];
@@ -196,18 +236,17 @@ function parseCricbuzzLiveScore(data: Record<string, unknown>): LiveScoreData | 
       };
     }
 
-    // Last 6 balls
+    // Last 6 balls from recent overs stats
     const lastSixBalls: string[] = [];
     const recentOvs = miniscore.recentOvsStats as string | undefined;
     if (recentOvs) {
-      // Format: "1 0 4 W 2 6 | 0 1 ..."
       const balls = recentOvs.replace(/\|/g, "").trim().split(/\s+/);
       lastSixBalls.push(...balls.slice(-6));
     }
 
     // Match status
     const matchStatus = (miniscore.status as string) ||
-      (data.matchHeader as Record<string, unknown>)?.status as string ||
+      (matchHeader?.status as string) ||
       "In Progress";
 
     return {
@@ -229,56 +268,27 @@ function parseCricbuzzLiveScore(data: Record<string, unknown>): LiveScoreData | 
   }
 }
 
-/**
- * Strategy 2: Direct Cricbuzz HTML scraping as fallback
- */
-async function fetchFromCricbuzzDirect(teamA: string, teamB: string): Promise<LiveScoreData | null> {
+function parseScoreHtml(html: string, _matchId: string): LiveScoreData | null {
   try {
-    // Fetch Cricbuzz live scores page
-    const res = await fetch("https://www.cricbuzz.com/cricket-match/live-scores", {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; SixSense/1.0)",
-        Accept: "text/html",
-      },
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
+    // Basic HTML parsing for score — fallback only
+    // Look for score patterns like "185/4 (18.2)"
+    const scoreMatch = html.match(/(\d+)\/(\d+)\s*\((\d+\.?\d*)\s*ov/i);
+    if (!scoreMatch) return null;
 
-    if (!res.ok) return null;
-    const html = await res.text();
-
-    // Extract match links to find the right match ID
-    // Pattern: /live-cricket-scores/12345/team-a-vs-team-b
-    const matchPattern = /\/live-cricket-scores\/(\d+)\/([^"]+)/g;
-    let match;
-    let cricMatchId: string | null = null;
-
-    while ((match = matchPattern.exec(html)) !== null) {
-      const slug = match[2].toLowerCase();
-      if (teamMatches(slug.replace(/-/g, " "), teamA) && teamMatches(slug.replace(/-/g, " "), teamB)) {
-        cricMatchId = match[1];
-        break;
-      }
-    }
-
-    if (!cricMatchId) return null;
-
-    // Fetch match commentary API (JSON)
-    const commentaryRes = await fetch(
-      `https://www.cricbuzz.com/api/cricket-match/${cricMatchId}/full-commentary/1`,
-      {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; SixSense/1.0)",
-          Accept: "application/json",
-        },
-        cache: "no-store",
-        signal: AbortSignal.timeout(5000),
-      }
-    );
-
-    if (!commentaryRes.ok) return null;
-    const commentaryData = await commentaryRes.json();
-    return parseCricbuzzLiveScore(commentaryData);
+    return {
+      battingTeam: "Current Innings",
+      battingTeamShort: "",
+      score: `${scoreMatch[1]}/${scoreMatch[2]}`,
+      overs: scoreMatch[3],
+      runRate: "0.00",
+      requiredRunRate: null,
+      target: null,
+      batsmen: [],
+      bowler: null,
+      lastSixBalls: [],
+      matchStatus: "In Progress",
+      isSecondInnings: false,
+    };
   } catch {
     return null;
   }
@@ -302,26 +312,35 @@ export async function GET(request: NextRequest) {
     return Response.json({ ...cached.data, cached: true });
   }
 
-  // Strategy 1: cricbuzz-live open-source API (free, no key)
-  let data = await fetchFromCricbuzzLive(teamA, teamB);
+  // Step 1: Find the match on Cricbuzz
+  const matchId = await findCricbuzzMatchId(teamA, teamB);
 
-  // Strategy 2: Direct Cricbuzz scraping fallback
-  if (!data) {
-    data = await fetchFromCricbuzzDirect(teamA, teamB);
+  if (!matchId) {
+    // Return stale cache if available
+    if (cached) {
+      return Response.json({ ...cached.data, cached: true, stale: true });
+    }
+    return Response.json(
+      { error: "No matching live match found", code: "NO_MATCH" },
+      { status: 404 }
+    );
   }
+
+  // Step 2: Fetch live score
+  const data = await fetchCricbuzzScore(matchId);
 
   if (data) {
     cache.set(cacheKey, { data, timestamp: Date.now() });
     return Response.json(data);
   }
 
-  // Return stale cache if all strategies fail
+  // Return stale cache if fetch failed
   if (cached) {
     return Response.json({ ...cached.data, cached: true, stale: true });
   }
 
   return Response.json(
-    { error: "No matching live match found", code: "NO_MATCH" },
-    { status: 404 }
+    { error: "Failed to fetch score", code: "FETCH_ERROR" },
+    { status: 500 }
   );
 }
