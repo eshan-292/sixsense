@@ -24,9 +24,9 @@ export async function POST(request: Request) {
     );
   }
 
-  if (coins_wagered < 100 || coins_wagered > 2000) {
+  if (coins_wagered < 50 || coins_wagered > 1000) {
     return NextResponse.json(
-      { error: "Wager must be between 100 and 2,000" },
+      { error: "Wager must be between 50 and 1,000" },
       { status: 400 }
     );
   }

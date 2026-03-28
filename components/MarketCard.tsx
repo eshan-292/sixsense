@@ -30,7 +30,7 @@ function calculateLiveOdds(
   return odds;
 }
 
-const WAGER_PRESETS = [100, 200, 500];
+const WAGER_PRESETS = [10, 50, 100, 200];
 
 interface Props {
   market: Market;
@@ -62,7 +62,7 @@ export default function MarketCard({
   matchUrl = "",
 }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [wager, setWager] = useState(200);
+  const [wager, setWager] = useState(50);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showShareCard, setShowShareCard] = useState(false);
@@ -105,8 +105,8 @@ export default function MarketCard({
 
   const handlePredict = async () => {
     if (!selectedOption || !userProfile) return;
-    if (wager < 100 || wager > 1000) {
-      setError("Wager must be 100-1,000 coins");
+    if (wager < 10 || wager > 500) {
+      setError("Wager must be 10-500 coins");
       return;
     }
     if (wager > userProfile.coins) {
@@ -159,7 +159,7 @@ export default function MarketCard({
 
   const selectedOdds = selectedOption ? (liveOdds[selectedOption] || 0) : 0;
   const potentialWin = Math.floor(wager * selectedOdds);
-  const maxWager = Math.min(1000, userProfile?.coins || 1000);
+  const maxWager = Math.min(500, userProfile?.coins || 500);
 
   return (
     <div className={`card p-4 ${isParlaySelected ? "ring-2 ring-[#e63946]/40" : ""}`}>
@@ -299,7 +299,7 @@ export default function MarketCard({
           <div className="mb-3">
             <input
               type="range"
-              min={100}
+              min={10}
               max={maxWager}
               step={50}
               value={wager}

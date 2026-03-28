@@ -28,7 +28,7 @@ export default function MatchDetailClient({
   // Parlay state
   const [parlayMode, setParlayMode] = useState(false);
   const [parlaySelections, setParlaySelections] = useState<Record<string, string>>({});
-  const [parlayWager, setParlayWager] = useState(200);
+  const [parlayWager, setParlayWager] = useState(100);
   const [parlayLoading, setParlayLoading] = useState(false);
   const [parlayError, setParlayError] = useState("");
   const [parlaySuccess, setParlaySuccess] = useState("");
@@ -345,29 +345,50 @@ export default function MatchDetailClient({
 
       {/* Parlay bar — sticky at bottom */}
       {parlayMode && parlayCount > 0 && profile && (
-        <div className="fixed bottom-16 left-0 right-0 z-40 bg-[#0f1923] border-t border-[#243040] p-4 animate-slide-up safe-area-bottom">
-          <div className="max-w-lg mx-auto">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <span className="text-sm font-semibold text-white">{parlayCount} picks</span>
-                <span className="text-sm text-[#8899a6] mx-2">·</span>
-                <span className="text-sm font-bold text-[#f5a623]">{combinedOdds.toFixed(1)}x</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {[200, 500].map((preset) => (
-                  <button
-                    key={preset}
-                    onClick={() => setParlayWager(preset)}
-                    className={`px-3 py-1 rounded-md text-xs font-medium ${
-                      parlayWager === preset ? "bg-[#e63946] text-white" : "bg-[#1a2332] text-[#8899a6]"
-                    }`}
-                  >
-                    {preset}
-                  </button>
-                ))}
+        <div className="fixed bottom-16 left-0 right-0 z-40 bg-[#1a2332] border-t border-[#e63946]/30 animate-slide-up safe-area-bottom">
+          <div className="max-w-lg mx-auto px-4 py-3">
+            {/* Selected picks */}
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-3">
+              {parlayEntries.map(([marketId, optionId]) => {
+                const market = markets.find((m) => m.id === marketId);
+                const option = market?.options.find((o) => o.id === optionId);
+                return (
+                  <div key={marketId} className="shrink-0 bg-[#243040] rounded-lg px-3 py-1.5 flex items-center gap-2">
+                    <span className="text-xs text-white font-medium">{option?.label}</span>
+                    <button
+                      onClick={() => handleParlayToggle(marketId, null)}
+                      className="text-[#556677] hover:text-[#e63946] text-xs"
+                    >✕</button>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Odds + wager row */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[11px] text-[#8899a6]">Combined odds</span>
+                  <span className="text-sm font-bold text-[#f5a623]">{combinedOdds.toFixed(1)}x</span>
+                </div>
+                <input
+                  type="range"
+                  min={10}
+                  max={Math.min(1000, profile.coins)}
+                  step={10}
+                  value={parlayWager}
+                  onChange={(e) => setParlayWager(Number(e.target.value))}
+                  className="w-full"
+                />
+                <div className="flex items-center justify-between text-[11px] text-[#556677] mt-0.5">
+                  <span>10</span>
+                  <span className="text-[#f5a623] font-bold">{parlayWager} coins</span>
+                  <span>{Math.min(1000, profile.coins)}</span>
+                </div>
               </div>
             </div>
 
+            {/* Potential win */}
             <div className="text-center mb-3">
               <span className="text-xs text-[#8899a6]">Bet {parlayWager} →</span>
               <span className="text-xl font-bold text-[#2ecc71] ml-2">Win {formatCoins(potentialParlayPayout)}</span>
@@ -382,8 +403,8 @@ export default function MatchDetailClient({
               className="w-full bg-[#e63946] hover:bg-[#d32f3c] text-white text-sm font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
             >
               {parlayLoading ? "Placing..." : parlayCount < 2
-                ? `Select ${2 - parlayCount} more`
-                : `Place Parlay — Win ${formatCoins(potentialParlayPayout)}`}
+                ? `Pick ${2 - parlayCount} more to place parlay`
+                : `Place ${parlayCount}-Pick Parlay — Win ${formatCoins(potentialParlayPayout)}`}
             </button>
           </div>
         </div>

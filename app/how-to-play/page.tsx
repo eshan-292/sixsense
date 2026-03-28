@@ -27,7 +27,7 @@ const SECTIONS = [
         icon: "\u{1FA99}",
         title: "Wager Coins",
         description:
-          "You start with 10,000 virtual coins. Wager 100\u20131,000 coins per prediction. No real money — ever!",
+          "You start with 10,000 virtual coins. Wager 10\u2013500 coins per prediction. No real money — ever!",
       },
     ],
   },
@@ -90,7 +90,7 @@ const SECTIONS = [
         icon: "\u{1F525}",
         title: "Parlay Builder",
         description:
-          "Combine 2\u20134 predictions into a single parlay bet. All picks must be correct to win, but the odds multiply together for massive payouts. Wager up to 2,000 coins on a parlay.",
+          "Combine 2\u20134 predictions into a single parlay bet. All picks must be correct to win, but the odds multiply together for massive payouts. Wager up to 1,000 coins on a parlay.",
       },
       {
         icon: "\u{1F9EE}",
@@ -221,7 +221,7 @@ export default function HowToPlayPage() {
             </div>
             <div className="bg-gray-800/30 rounded-lg p-3">
               <p className="text-gray-500 mb-1">Wager Range</p>
-              <p className="text-white font-semibold">100 - 1,000</p>
+              <p className="text-white font-semibold">10 - 500</p>
             </div>
             <div className="bg-gray-800/30 rounded-lg p-3">
               <p className="text-gray-500 mb-1">Daily Bonus</p>
@@ -233,7 +233,7 @@ export default function HowToPlayPage() {
             </div>
             <div className="bg-gray-800/30 rounded-lg p-3">
               <p className="text-gray-500 mb-1">Parlay Max</p>
-              <p className="text-white font-semibold">4 picks, 2,000 coins</p>
+              <p className="text-white font-semibold">4 picks, 1,000 coins</p>
             </div>
             <div className="bg-gray-800/30 rounded-lg p-3">
               <p className="text-gray-500 mb-1">Wrong Prediction</p>
