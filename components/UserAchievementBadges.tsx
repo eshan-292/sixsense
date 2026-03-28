@@ -24,7 +24,7 @@ export default function UserAchievementBadges({
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-700/30">
-      <p className="text-[10px] text-gray-500 mb-2 uppercase tracking-wider font-medium">
+      <p className="text-[11px] text-gray-500 mb-2 uppercase tracking-wider font-medium">
         Badges
       </p>
       <div className="flex flex-wrap gap-2">

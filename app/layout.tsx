@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import BottomNav from "@/components/BottomNav";
 import Providers from "@/components/Providers";
 
@@ -41,7 +40,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#030712",
+  themeColor: "#0f1923",
 };
 
 export default function RootLayout({
@@ -57,8 +56,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <Providers>
           <Navbar />
-          <main className="flex-1 pb-14 sm:pb-0">{children}</main>
-          <Footer />
+          <main className="flex-1 pb-20">{children}</main>
           <BottomNav />
         </Providers>
       </body>

@@ -81,7 +81,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-4xl mx-auto px-4 pt-8 pb-4">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -98,39 +98,39 @@ export default function AdminPage() {
 
           {/* Stats Overview - 2 rows */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-indigo-400">{matches.length}</p>
-              <p className="text-[10px] text-gray-500">Total Matches</p>
+              <p className="text-[11px] text-gray-500">Total Matches</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-purple-400">{markets.length}</p>
-              <p className="text-[10px] text-gray-500">Total Markets</p>
+              <p className="text-[11px] text-gray-500">Total Markets</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-green-400">{stats.players}</p>
-              <p className="text-[10px] text-gray-500">Players</p>
+              <p className="text-[11px] text-gray-500">Players</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-yellow-400">{stats.predictions}</p>
-              <p className="text-[10px] text-gray-500">Predictions</p>
+              <p className="text-[11px] text-gray-500">Predictions</p>
             </div>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-orange-400">{liveMatches.length}</p>
-              <p className="text-[10px] text-gray-500">Live Now</p>
+              <p className="text-[11px] text-gray-500">Live Now</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-blue-400">{pendingMarkets.length}</p>
-              <p className="text-[10px] text-gray-500">Unsettled Markets</p>
+              <p className="text-[11px] text-gray-500">Unsettled Markets</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-emerald-400">{settledCount}</p>
-              <p className="text-[10px] text-gray-500">Settled Markets</p>
+              <p className="text-[11px] text-gray-500">Settled Markets</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-cyan-400">{totalCoinsInCirculation.toLocaleString("en-IN")}</p>
-              <p className="text-[10px] text-gray-500">Coins in Play</p>
+              <p className="text-[11px] text-gray-500">Coins in Play</p>
             </div>
           </div>
 
@@ -138,54 +138,54 @@ export default function AdminPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
             <Link
               href="/admin/matches"
-              className="glass-card rounded-xl p-4 hover:bg-gray-800/50 transition-all group"
+              className="card rounded-xl p-4 hover:bg-gray-800/50 transition-all group"
             >
               <p className="text-2xl mb-2">🏏</p>
               <p className="text-sm font-semibold text-white group-hover:text-indigo-400 transition-colors">Matches</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">Add & manage</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Add & manage</p>
             </Link>
 
             <Link
               href="/admin/settle"
-              className="glass-card rounded-xl p-4 hover:bg-gray-800/50 transition-all group relative"
+              className="card rounded-xl p-4 hover:bg-gray-800/50 transition-all group relative"
             >
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-2xl">⚖️</p>
                 {pendingMarkets.length > 0 && (
-                  <span className="text-[10px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-full font-medium">
+                  <span className="text-[11px] bg-orange-500/20 text-orange-400 px-1.5 py-0.5 rounded-full font-medium">
                     {pendingMarkets.length}
                   </span>
                 )}
               </div>
               <p className="text-sm font-semibold text-white group-hover:text-green-400 transition-colors">Settle</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">Resolve markets</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Resolve markets</p>
             </Link>
 
             <Link
               href="/admin/users"
-              className="glass-card rounded-xl p-4 hover:bg-gray-800/50 transition-all group"
+              className="card rounded-xl p-4 hover:bg-gray-800/50 transition-all group"
             >
               <p className="text-2xl mb-2">👥</p>
               <p className="text-sm font-semibold text-white group-hover:text-purple-400 transition-colors">Users</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">Manage players</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Manage players</p>
             </Link>
 
             <Link
               href="/admin/analytics"
-              className="glass-card rounded-xl p-4 hover:bg-gray-800/50 transition-all group"
+              className="card rounded-xl p-4 hover:bg-gray-800/50 transition-all group"
             >
               <p className="text-2xl mb-2">📊</p>
               <p className="text-sm font-semibold text-white group-hover:text-cyan-400 transition-colors">Analytics</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">Stats & reports</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Stats & reports</p>
             </Link>
 
             <Link
               href="/admin/markets"
-              className="glass-card rounded-xl p-4 hover:bg-gray-800/50 transition-all group"
+              className="card rounded-xl p-4 hover:bg-gray-800/50 transition-all group"
             >
               <p className="text-2xl mb-2">🎯</p>
               <p className="text-sm font-semibold text-white group-hover:text-yellow-400 transition-colors">Markets</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">View & cancel</p>
+              <p className="text-[11px] text-gray-500 mt-0.5">View & cancel</p>
             </Link>
           </div>
         </div>
@@ -202,35 +202,35 @@ export default function AdminPage() {
             </div>
             <div className="space-y-2">
               {matchesWithoutMarkets.length > 0 && (
-                <Link href="/admin/matches" className="glass-card rounded-lg p-3 flex items-center justify-between hover:bg-gray-800/50 transition-all">
+                <Link href="/admin/matches" className="card rounded-lg p-3 flex items-center justify-between hover:bg-gray-800/50 transition-all">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">⚠️</span>
                     <div>
                       <p className="text-sm text-white font-medium">{matchesWithoutMarkets.length} match{matchesWithoutMarkets.length > 1 ? "es" : ""} without markets</p>
-                      <p className="text-[10px] text-gray-500">Create markets before they go live</p>
+                      <p className="text-[11px] text-gray-500">Create markets before they go live</p>
                     </div>
                   </div>
                   <span className="text-xs text-orange-400">Fix →</span>
                 </Link>
               )}
               {lockedMarkets.length > 0 && (
-                <Link href="/admin/settle" className="glass-card rounded-lg p-3 flex items-center justify-between hover:bg-gray-800/50 transition-all">
+                <Link href="/admin/settle" className="card rounded-lg p-3 flex items-center justify-between hover:bg-gray-800/50 transition-all">
                   <div className="flex items-center gap-3">
                     <span className="text-lg">🔒</span>
                     <div>
                       <p className="text-sm text-white font-medium">{lockedMarkets.length} locked market{lockedMarkets.length > 1 ? "s" : ""} awaiting settlement</p>
-                      <p className="text-[10px] text-gray-500">Settle when results are in</p>
+                      <p className="text-[11px] text-gray-500">Settle when results are in</p>
                     </div>
                   </div>
                   <span className="text-xs text-yellow-400">Settle →</span>
                 </Link>
               )}
               {liveMatches.length > 0 && (
-                <div className="glass-card rounded-lg p-3 flex items-center gap-3">
+                <div className="card rounded-lg p-3 flex items-center gap-3">
                   <span className="text-lg">🟢</span>
                   <div>
                     <p className="text-sm text-white font-medium">{liveMatches.length} match{liveMatches.length > 1 ? "es" : ""} currently live</p>
-                    <p className="text-[10px] text-gray-500">
+                    <p className="text-[11px] text-gray-500">
                       {liveMatches.map(m => `${m.team_a_short} vs ${m.team_b_short}`).join(", ")}
                     </p>
                   </div>
@@ -332,7 +332,7 @@ function MatchRow({
   };
 
   return (
-    <div className="glass-card rounded-lg p-3">
+    <div className="card rounded-lg p-3">
       <div className="flex items-center justify-between">
         <div className="min-w-0">
           <p className="text-sm text-white font-medium">
@@ -363,14 +363,14 @@ function MatchRow({
         </div>
         <div className="flex items-center gap-2 shrink-0 ml-2">
           {!hasMarkets && match.status === "upcoming" && (
-            <Link href="/admin/matches" className="text-[9px] bg-orange-500/10 text-orange-400 px-1.5 py-0.5 rounded font-medium hover:bg-orange-500/20 transition-colors">
+            <Link href="/admin/matches" className="text-[11px] bg-orange-500/10 text-orange-400 px-1.5 py-0.5 rounded font-medium hover:bg-orange-500/20 transition-colors">
               + Markets
             </Link>
           )}
           {match.status === "upcoming" && (
             <button
               onClick={() => handleStatusChange("live")}
-              className="text-[10px] bg-green-600 hover:bg-green-500 text-white px-2 py-0.5 rounded transition-colors"
+              className="text-[11px] bg-green-600 hover:bg-green-500 text-white px-2 py-0.5 rounded transition-colors"
             >
               Go Live
             </button>
@@ -378,7 +378,7 @@ function MatchRow({
           {match.status === "live" && (
             <button
               onClick={() => handleStatusChange("completed")}
-              className="text-[10px] bg-gray-600 hover:bg-gray-500 text-white px-2 py-0.5 rounded transition-colors"
+              className="text-[11px] bg-gray-600 hover:bg-gray-500 text-white px-2 py-0.5 rounded transition-colors"
             >
               Complete
             </button>
@@ -386,13 +386,13 @@ function MatchRow({
           {match.status === "completed" && !match.result && (
             <button
               onClick={() => setSettingResult(!settingResult)}
-              className="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors"
+              className="text-[11px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded transition-colors"
             >
               Set Result
             </button>
           )}
           <span
-            className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+            className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
               match.status === "upcoming"
                 ? "bg-blue-500/10 text-blue-400"
                 : match.status === "live"

@@ -75,14 +75,14 @@ export default function AchievementsGrid({ earnedIds }: AchievementsGridProps) {
                 size="lg"
               />
               <p
-                className={`text-[10px] font-medium text-center leading-tight ${
+                className={`text-[11px] font-medium text-center leading-tight ${
                   earned ? "text-gray-300" : "text-gray-600"
                 }`}
               >
                 {achievement.name}
               </p>
               <span
-                className={`text-[9px] capitalize ${
+                className={`text-[11px] capitalize ${
                   earned ? colors.text : "text-gray-700"
                 }`}
               >

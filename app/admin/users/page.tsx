@@ -71,7 +71,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-4xl mx-auto px-4 pt-8 pb-4">
           <div className="flex items-center justify-between mb-2">
             <div>
@@ -85,21 +85,21 @@ export default function AdminUsersPage() {
 
           {/* Summary stats */}
           <div className="grid grid-cols-4 gap-3 mt-4">
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-xl font-bold text-green-400">{users.length}</p>
-              <p className="text-[10px] text-gray-500">Total</p>
+              <p className="text-[11px] text-gray-500">Total</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-xl font-bold text-yellow-400">{formatCoins(users.reduce((s, u) => s + u.coins, 0))}</p>
-              <p className="text-[10px] text-gray-500">Total Coins</p>
+              <p className="text-[11px] text-gray-500">Total Coins</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-xl font-bold text-indigo-400">{users.reduce((s, u) => s + u.total_predictions, 0)}</p>
-              <p className="text-[10px] text-gray-500">Total Predictions</p>
+              <p className="text-[11px] text-gray-500">Total Predictions</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-xl font-bold text-purple-400">{users.filter(u => u.is_admin).length}</p>
-              <p className="text-[10px] text-gray-500">Admins</p>
+              <p className="text-[11px] text-gray-500">Admins</p>
             </div>
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function AdminUsersPage() {
         {/* Grant coins modal */}
         {grantUserId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-            <div className="glass-card rounded-xl p-5 max-w-sm w-full border border-gray-700">
+            <div className="card rounded-xl p-5 max-w-sm w-full border border-gray-700">
               <h3 className="text-sm font-semibold text-white mb-3">Grant Coins</h3>
               <p className="text-xs text-gray-400 mb-3">
                 To: <span className="text-white font-medium">{users.find(u => u.id === grantUserId)?.display_name}</span>
@@ -165,14 +165,14 @@ export default function AdminUsersPage() {
         )}
 
         {/* Users Table */}
-        <div className="glass-card rounded-xl overflow-hidden">
+        <div className="card rounded-xl overflow-hidden">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-800">
-                <th className="text-left text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">User</th>
-                <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">Coins</th>
-                <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider hidden sm:table-cell">Stats</th>
-                <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">Actions</th>
+                <th className="text-left text-[11px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">User</th>
+                <th className="text-right text-[11px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">Coins</th>
+                <th className="text-right text-[11px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider hidden sm:table-cell">Stats</th>
+                <th className="text-right text-[11px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -183,7 +183,7 @@ export default function AdminUsersPage() {
                       {user.avatar_url ? (
                         <img src={user.avatar_url} alt="" className="w-7 h-7 rounded-full border border-gray-700" />
                       ) : (
-                        <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-bold text-white">
+                        <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-[11px] font-bold text-white">
                           {user.display_name?.[0] || "?"}
                         </div>
                       )}
@@ -191,10 +191,10 @@ export default function AdminUsersPage() {
                         <span className="text-sm text-white font-medium block">
                           {user.display_name}
                           {user.is_admin && (
-                            <span className="text-[9px] bg-orange-500/10 text-orange-400 px-1 py-0.5 rounded ml-1.5 font-medium">Admin</span>
+                            <span className="text-[11px] bg-orange-500/10 text-orange-400 px-1 py-0.5 rounded ml-1.5 font-medium">Admin</span>
                           )}
                         </span>
-                        <span className="text-[10px] text-gray-600">
+                        <span className="text-[11px] text-gray-600">
                           Joined {new Date(user.created_at).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
                         </span>
                       </div>
@@ -217,21 +217,21 @@ export default function AdminUsersPage() {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => { setGrantUserId(user.id); setGrantAmount(1000); }}
-                        className="text-[10px] bg-green-600/20 text-green-400 hover:bg-green-600/30 px-2 py-1 rounded transition-colors"
+                        className="text-[11px] bg-green-600/20 text-green-400 hover:bg-green-600/30 px-2 py-1 rounded transition-colors"
                         title="Grant coins"
                       >
                         +Coins
                       </button>
                       <button
                         onClick={() => handleAction(user.id, "reset_coins")}
-                        className="text-[10px] bg-gray-700/50 text-gray-400 hover:bg-gray-700 px-2 py-1 rounded transition-colors"
+                        className="text-[11px] bg-gray-700/50 text-gray-400 hover:bg-gray-700 px-2 py-1 rounded transition-colors"
                         title="Reset to 10,000"
                       >
                         Reset
                       </button>
                       <button
                         onClick={() => handleAction(user.id, "toggle_admin")}
-                        className={`text-[10px] px-2 py-1 rounded transition-colors ${
+                        className={`text-[11px] px-2 py-1 rounded transition-colors ${
                           user.is_admin
                             ? "bg-red-600/20 text-red-400 hover:bg-red-600/30"
                             : "bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30"

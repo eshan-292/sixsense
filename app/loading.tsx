@@ -1,7 +1,7 @@
 export default function Loading() {
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-2xl mx-auto px-4 pt-10 pb-8 text-center">
           {/* Badge skeleton */}
           <div className="inline-block w-48 h-7 rounded-full bg-gray-800/50 shimmer mb-4" />
@@ -30,7 +30,7 @@ export default function Loading() {
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="glass-card rounded-xl p-4 mb-3"
+            className="card rounded-xl p-4 mb-3"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="w-32 h-3 rounded bg-gray-800/50 shimmer" />

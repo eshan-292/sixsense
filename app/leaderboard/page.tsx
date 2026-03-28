@@ -73,7 +73,7 @@ export default async function LeaderboardPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-2xl mx-auto px-4 pt-8 pb-4">
           <h1 className="text-3xl font-bold text-white text-center mb-1">
             Leaderboard
@@ -84,7 +84,7 @@ export default async function LeaderboardPage() {
 
           {/* Your rank card */}
           {userProfile && userRank && (
-            <div className="glass-card gradient-border rounded-xl p-4 mb-6">
+            <div className="card rounded-xl p-4 mb-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {userProfile.avatar_url ? (
@@ -117,27 +117,27 @@ export default async function LeaderboardPage() {
               <div className="grid grid-cols-5 gap-2 mt-4 pt-3 border-t border-gray-800">
                 <div className="text-center">
                   <p className="text-sm font-bold text-white">{userProfile.total_predictions}</p>
-                  <p className="text-[10px] text-gray-600">Predicted</p>
+                  <p className="text-[11px] text-gray-600">Predicted</p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-green-400">{userProfile.total_wins}</p>
-                  <p className="text-[10px] text-gray-600">Wins</p>
+                  <p className="text-[11px] text-gray-600">Wins</p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-red-400">{userProfile.total_losses}</p>
-                  <p className="text-[10px] text-gray-600">Losses</p>
+                  <p className="text-[11px] text-gray-600">Losses</p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-purple-400">
                     {userProfile.ssr ?? 0}
                   </p>
-                  <p className="text-[10px] text-gray-600">SSR</p>
+                  <p className="text-[11px] text-gray-600">SSR</p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-orange-400">
                     {(userProfile.current_streak ?? 0) > 0 ? `${userProfile.current_streak}` : "-"}
                   </p>
-                  <p className="text-[10px] text-gray-600">Streak</p>
+                  <p className="text-[11px] text-gray-600">Streak</p>
                 </div>
               </div>
             </div>

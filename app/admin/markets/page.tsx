@@ -77,7 +77,7 @@ export default function AdminMarketsPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-4xl mx-auto px-4 pt-8 pb-4">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -102,7 +102,7 @@ export default function AdminMarketsPage() {
                 }`}
               >
                 {f.charAt(0).toUpperCase() + f.slice(1)}
-                <span className="ml-1 text-[10px] opacity-70">
+                <span className="ml-1 text-[11px] opacity-70">
                   ({f === "all" ? markets.length : markets.filter(m => m.status === f).length})
                 </span>
               </button>
@@ -121,7 +121,7 @@ export default function AdminMarketsPage() {
         {/* Cancel confirmation modal */}
         {confirmCancel && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-            <div className="glass-card rounded-xl p-5 max-w-sm w-full border border-gray-700">
+            <div className="card rounded-xl p-5 max-w-sm w-full border border-gray-700">
               <h3 className="text-sm font-semibold text-white mb-2">Cancel Market</h3>
               <p className="text-xs text-gray-400 mb-1">
                 This will <span className="text-red-400 font-medium">delete this market</span> and refund all {predCounts[confirmCancel] || 0} predictions.
@@ -144,7 +144,7 @@ export default function AdminMarketsPage() {
         )}
 
         {filtered.length === 0 ? (
-          <div className="text-center py-16 glass-card rounded-xl">
+          <div className="text-center py-16 card rounded-xl">
             <p className="text-4xl mb-3">🎯</p>
             <p className="text-gray-400">No markets found</p>
           </div>
@@ -155,11 +155,11 @@ export default function AdminMarketsPage() {
               const count = predCounts[market.id] || 0;
 
               return (
-                <div key={market.id} className="glass-card rounded-lg p-3">
+                <div key={market.id} className="card rounded-lg p-3">
                   <div className="flex items-start justify-between">
                     <div className="min-w-0 flex-1">
                       {match && (
-                        <p className="text-[10px] text-gray-500 mb-0.5">
+                        <p className="text-[11px] text-gray-500 mb-0.5">
                           {match.team_a_short} vs {match.team_b_short} · {new Date(match.match_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                         </p>
                       )}
@@ -168,7 +168,7 @@ export default function AdminMarketsPage() {
                         {market.options.map(opt => (
                           <span
                             key={opt.id}
-                            className={`text-[10px] px-1.5 py-0.5 rounded ${
+                            className={`text-[11px] px-1.5 py-0.5 rounded ${
                               market.correct_option_id === opt.id
                                 ? "bg-green-500/20 text-green-400 font-medium"
                                 : "bg-gray-800/50 text-gray-500"
@@ -181,8 +181,8 @@ export default function AdminMarketsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <span className="text-[10px] text-gray-500">{count} pred{count !== 1 ? "s" : ""}</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                      <span className="text-[11px] text-gray-500">{count} pred{count !== 1 ? "s" : ""}</span>
+                      <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${
                         market.status === "open" ? "bg-blue-500/10 text-blue-400"
                           : market.status === "locked" ? "bg-yellow-500/10 text-yellow-400"
                           : "bg-green-500/10 text-green-400"
@@ -192,7 +192,7 @@ export default function AdminMarketsPage() {
                       {market.status !== "settled" && (
                         <button
                           onClick={() => setConfirmCancel(market.id)}
-                          className="text-[10px] bg-red-600/20 text-red-400 hover:bg-red-600/30 px-2 py-1 rounded transition-colors"
+                          className="text-[11px] bg-red-600/20 text-red-400 hover:bg-red-600/30 px-2 py-1 rounded transition-colors"
                         >
                           Cancel
                         </button>

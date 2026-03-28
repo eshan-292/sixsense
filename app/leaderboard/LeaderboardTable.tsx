@@ -77,23 +77,23 @@ export default function LeaderboardTable({
         </div>
       )}
 
-      <div className="glass-card rounded-xl overflow-hidden">
+      <div className="card rounded-xl overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-800">
-              <th className="text-left text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">
+              <th className="text-left text-[11px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">
                 Rank
               </th>
-              <th className="text-left text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">
+              <th className="text-left text-[11px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">
                 Player
               </th>
-              <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">
+              <th className="text-right text-[11px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">
                 {getMetricLabel()}
               </th>
-              <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 hidden sm:table-cell uppercase tracking-wider">
+              <th className="text-right text-[11px] text-gray-500 font-medium py-3 px-4 hidden sm:table-cell uppercase tracking-wider">
                 Record
               </th>
-              <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 hidden sm:table-cell uppercase tracking-wider">
+              <th className="text-right text-[11px] text-gray-500 font-medium py-3 px-4 hidden sm:table-cell uppercase tracking-wider">
                 {primaryMetric === "ssr" ? "Coins" : "SSR"}
               </th>
             </tr>
@@ -129,7 +129,7 @@ export default function LeaderboardTable({
                           className="w-7 h-7 rounded-full border border-gray-700"
                         />
                       ) : (
-                        <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-bold text-white">
+                        <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-[11px] font-bold text-white">
                           {leader.display_name?.[0] || "?"}
                         </div>
                       )}

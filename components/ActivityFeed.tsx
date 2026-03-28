@@ -251,7 +251,7 @@ export default function ActivityFeed({ matchId }: Props) {
 
   if (loading) {
     return (
-      <div className="glass-card rounded-xl p-4">
+      <div className="card rounded-xl p-4">
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex items-center gap-3">
@@ -269,14 +269,14 @@ export default function ActivityFeed({ matchId }: Props) {
 
   if (entries.length === 0) {
     return (
-      <div className="glass-card rounded-xl p-4 text-center">
+      <div className="card rounded-xl p-4 text-center">
         <p className="text-xs text-gray-500">No predictions yet. Be the first!</p>
       </div>
     );
   }
 
   return (
-    <div className="glass-card rounded-xl p-4">
+    <div className="card rounded-xl p-4">
       <div className="space-y-2.5">
         {entries.map((entry) => (
           <div
@@ -291,7 +291,7 @@ export default function ActivityFeed({ matchId }: Props) {
                 className="w-7 h-7 rounded-full border border-gray-700 shrink-0"
               />
             ) : (
-              <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+              <div className="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-[11px] font-bold text-white shrink-0">
                 {entry.display_name?.[0] || "?"}
               </div>
             )}
@@ -310,10 +310,10 @@ export default function ActivityFeed({ matchId }: Props) {
                 <span className="text-gray-400">{entry.market_question}</span>
               </p>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[10px] text-gray-600">
+                <span className="text-[11px] text-gray-600">
                   {timeAgo(entry.created_at)}
                 </span>
-                <span className="text-[10px] bg-yellow-500/10 text-yellow-400 px-1.5 py-0.5 rounded font-medium">
+                <span className="text-[11px] bg-yellow-500/10 text-yellow-400 px-1.5 py-0.5 rounded font-medium">
                   {formatCoins(entry.coins_wagered)} coins
                 </span>
               </div>

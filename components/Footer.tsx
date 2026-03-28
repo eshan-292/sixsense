@@ -10,7 +10,7 @@ export default function Footer() {
             <span className="text-xs font-semibold text-gray-500">
               Six<span className="text-gray-400">Sense</span>
             </span>
-            <span className="text-[10px] text-gray-700">
+            <span className="text-[11px] text-gray-700">
               &middot; IPL 2026 Predictions
             </span>
           </div>
@@ -34,7 +34,7 @@ export default function Footer() {
             >
               How to Play
             </Link>
-            <span className="text-[10px] text-gray-700">
+            <span className="text-[11px] text-gray-700">
               Not real gambling &middot; Virtual coins only
             </span>
           </div>

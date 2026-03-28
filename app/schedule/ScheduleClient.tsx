@@ -130,7 +130,7 @@ export default function ScheduleClient({ matches }: { matches: Match[] }) {
               {dayMatches.map((match) => (
                 <Link key={match.id} href={`/match/${match.id}`}>
                   <div
-                    className={`glass-card rounded-lg p-3 hover:bg-gray-800/50 transition-all cursor-pointer ${
+                    className={`card rounded-lg p-3 hover:bg-gray-800/50 transition-all cursor-pointer ${
                       isToday ? "border-orange-500/20 border" : ""
                     }`}
                   >
@@ -139,7 +139,7 @@ export default function ScheduleClient({ matches }: { matches: Match[] }) {
                         <div
                           className={`w-9 h-9 rounded-full ${getTeamColor(
                             match.team_a_short
-                          )} flex items-center justify-center text-[10px] font-bold shrink-0`}
+                          )} flex items-center justify-center text-[11px] font-bold shrink-0`}
                         >
                           {match.team_a_short}
                         </div>
@@ -149,7 +149,7 @@ export default function ScheduleClient({ matches }: { matches: Match[] }) {
                       </div>
 
                       <div className="px-2 shrink-0 flex flex-col items-center">
-                        <span className="text-[10px] text-gray-600 font-mono">
+                        <span className="text-[11px] text-gray-600 font-mono">
                           {new Date(match.match_date).toLocaleTimeString(
                             "en-IN",
                             {
@@ -158,7 +158,7 @@ export default function ScheduleClient({ matches }: { matches: Match[] }) {
                             }
                           )}
                         </span>
-                        <span className="text-[9px] text-gray-700">vs</span>
+                        <span className="text-[11px] text-gray-700">vs</span>
                       </div>
 
                       <div className="flex items-center gap-3 flex-1 min-w-0 justify-end">
@@ -168,7 +168,7 @@ export default function ScheduleClient({ matches }: { matches: Match[] }) {
                         <div
                           className={`w-9 h-9 rounded-full ${getTeamColor(
                             match.team_b_short
-                          )} flex items-center justify-center text-[10px] font-bold shrink-0`}
+                          )} flex items-center justify-center text-[11px] font-bold shrink-0`}
                         >
                           {match.team_b_short}
                         </div>
@@ -176,10 +176,10 @@ export default function ScheduleClient({ matches }: { matches: Match[] }) {
                     </div>
 
                     <div className="flex items-center justify-between mt-1.5">
-                      <span className="text-[10px] text-gray-700 font-medium">
+                      <span className="text-[11px] text-gray-700 font-medium">
                         Match {matchNumberMap.get(match.id)}
                       </span>
-                      <p className="text-[10px] text-gray-600 truncate">
+                      <p className="text-[11px] text-gray-600 truncate">
                         📍 {match.venue}
                       </p>
                     </div>

@@ -56,11 +56,11 @@ export default function AchievementBadge({
             <p className={`text-xs font-semibold ${earned ? colors.text : "text-gray-400"}`}>
               {achievement.name}
             </p>
-            <p className="text-[10px] text-gray-500 mt-0.5">
+            <p className="text-[11px] text-gray-500 mt-0.5">
               {achievement.description}
             </p>
             {earned && unlockedAt && (
-              <p className="text-[9px] text-gray-600 mt-1">
+              <p className="text-[11px] text-gray-600 mt-1">
                 Unlocked{" "}
                 {new Date(unlockedAt).toLocaleDateString("en-IN", {
                   month: "short",
@@ -69,7 +69,7 @@ export default function AchievementBadge({
               </p>
             )}
             {!earned && (
-              <p className="text-[9px] text-gray-600 mt-1 italic">Locked</p>
+              <p className="text-[11px] text-gray-600 mt-1 italic">Locked</p>
             )}
             <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-700" />
           </div>

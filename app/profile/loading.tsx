@@ -1,7 +1,7 @@
 export default function ProfileLoading() {
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-2xl mx-auto px-4 pt-8 pb-4 text-center">
           {/* Avatar */}
           <div className="w-20 h-20 rounded-full bg-gray-800/50 shimmer mx-auto mb-3" />
@@ -22,7 +22,7 @@ export default function ProfileLoading() {
       </div>
       <div className="max-w-2xl mx-auto px-4 pb-10">
         {/* Daily bonus skeleton */}
-        <div className="glass-card rounded-xl p-4 mb-4">
+        <div className="card rounded-xl p-4 mb-4">
           <div className="flex items-center justify-between">
             <div>
               <div className="w-32 h-4 rounded bg-gray-800/50 shimmer mb-1.5" />
@@ -33,11 +33,11 @@ export default function ProfileLoading() {
         </div>
         {/* P&L skeleton */}
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="glass-card rounded-xl p-3">
+          <div className="card rounded-xl p-3">
             <div className="w-20 h-3 rounded bg-gray-800/50 shimmer mb-2" />
             <div className="w-16 h-6 rounded bg-gray-800/50 shimmer" />
           </div>
-          <div className="glass-card rounded-xl p-3">
+          <div className="card rounded-xl p-3">
             <div className="w-20 h-3 rounded bg-gray-800/50 shimmer mb-2" />
             <div className="w-16 h-6 rounded bg-gray-800/50 shimmer" />
           </div>
@@ -45,7 +45,7 @@ export default function ProfileLoading() {
         {/* Prediction history skeleton */}
         <div className="w-36 h-4 rounded bg-gray-800/50 shimmer mb-3" />
         {[1, 2, 3].map((i) => (
-          <div key={i} className="glass-card rounded-xl p-4 mb-3">
+          <div key={i} className="card rounded-xl p-4 mb-3">
             <div className="w-40 h-4 rounded bg-gray-800/50 shimmer mb-2" />
             <div className="flex items-center justify-between">
               <div className="w-24 h-3 rounded bg-gray-800/50 shimmer" />

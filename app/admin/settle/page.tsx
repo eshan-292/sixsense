@@ -224,7 +224,7 @@ export default function SettlePage() {
 
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-3xl mx-auto px-4 pt-8 pb-4">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -251,7 +251,7 @@ export default function SettlePage() {
         {/* Confirmation modal */}
         {confirmSettle && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-            <div className="glass-card rounded-xl p-5 max-w-sm w-full border border-gray-700">
+            <div className="card rounded-xl p-5 max-w-sm w-full border border-gray-700">
               <h3 className="text-sm font-semibold text-white mb-2">Confirm Settlement</h3>
               <p className="text-xs text-gray-400 mb-4">
                 Are you sure you want to settle this market with <span className="text-green-400 font-medium">&quot;{confirmSettle.optionLabel}&quot;</span> as the correct answer? This will pay out winners and cannot be undone.
@@ -276,7 +276,7 @@ export default function SettlePage() {
         )}
 
         {markets.length === 0 ? (
-          <div className="text-center py-16 glass-card rounded-xl">
+          <div className="text-center py-16 card rounded-xl">
             <p className="text-4xl mb-3">✅</p>
             <p className="text-gray-400">All markets are settled!</p>
             <p className="text-gray-600 text-xs mt-1">
@@ -300,12 +300,12 @@ export default function SettlePage() {
                         {match ? `${match.team_a_short} vs ${match.team_b_short}` : "Unknown Match"}
                       </h2>
                       {match && (
-                        <span className="text-[10px] text-gray-500">
+                        <span className="text-[11px] text-gray-500">
                           {new Date(match.match_date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                         </span>
                       )}
                       {matchResults && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
                           Results fetched
                         </span>
                       )}
@@ -364,7 +364,7 @@ export default function SettlePage() {
                         </div>
                       </div>
                       {matchResults.scores.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-gray-800 flex gap-4 text-[10px] text-gray-400">
+                        <div className="mt-2 pt-2 border-t border-gray-800 flex gap-4 text-[11px] text-gray-400">
                           {matchResults.scores.map((s, i) => (
                             <span key={i}>
                               {s.inning}: {s.runs}/{s.wickets} ({s.overs} ov)
@@ -383,7 +383,7 @@ export default function SettlePage() {
                     return (
                       <div
                         key={market.id}
-                        className={`glass-card rounded-xl p-4 transition-all ${isSettling ? "opacity-50" : ""} ${resolved ? "border-green-500/30" : ""}`}
+                        className={`card rounded-xl p-4 transition-all ${isSettling ? "opacity-50" : ""} ${resolved ? "border-green-500/30" : ""}`}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div>
@@ -393,12 +393,12 @@ export default function SettlePage() {
                           </div>
                           <div className="flex items-center gap-1.5">
                             {resolved && (
-                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
+                              <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 font-medium">
                                 Auto-resolved
                               </span>
                             )}
                             <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
+                              className={`text-[11px] px-2 py-0.5 rounded-full font-medium shrink-0 ${
                                 market.status === "locked"
                                   ? "bg-yellow-500/10 text-yellow-400"
                                   : "bg-blue-500/10 text-blue-400"
@@ -416,7 +416,7 @@ export default function SettlePage() {
                           </div>
                         )}
 
-                        <p className="text-[10px] text-gray-600 mb-2 uppercase tracking-wider">
+                        <p className="text-[11px] text-gray-600 mb-2 uppercase tracking-wider">
                           Select the correct outcome
                         </p>
                         <div className="grid grid-cols-2 gap-2">
@@ -441,7 +441,7 @@ export default function SettlePage() {
                               >
                                 <span className="font-medium">{opt.label}</span>
                                 {isAutoSuggested && (
-                                  <span className="text-[10px] text-green-400 ml-1.5">✓ suggested</span>
+                                  <span className="text-[11px] text-green-400 ml-1.5">✓ suggested</span>
                                 )}
                               </button>
                             );

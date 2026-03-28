@@ -71,7 +71,7 @@ export default async function UserProfilePage({
 
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-2xl mx-auto px-4 pt-6 pb-4">
           <Link
             href="/leaderboard"
@@ -81,7 +81,7 @@ export default async function UserProfilePage({
           </Link>
 
           {/* Profile Card */}
-          <div className="glass-card gradient-border rounded-2xl p-6">
+          <div className="card rounded-2xl p-6">
             <div className="flex items-center gap-4 mb-5">
               {profile.avatar_url ? (
                 <img
@@ -108,7 +108,7 @@ export default async function UserProfilePage({
               </div>
               <div className="text-right shrink-0">
                 <p className="text-2xl font-bold text-indigo-400">#{rank}</p>
-                <p className="text-[10px] text-gray-600">Global Rank</p>
+                <p className="text-[11px] text-gray-600">Global Rank</p>
               </div>
             </div>
 
@@ -118,29 +118,29 @@ export default async function UserProfilePage({
                 <p className="text-lg font-bold text-yellow-400">
                   {formatCoins(profile.coins)}
                 </p>
-                <p className="text-[10px] text-gray-600">Coins</p>
+                <p className="text-[11px] text-gray-600">Coins</p>
               </div>
               <div className="bg-gray-800/40 rounded-lg p-2.5 text-center">
                 <p className="text-lg font-bold text-indigo-400">
                   {profile.total_predictions}
                 </p>
-                <p className="text-[10px] text-gray-600">Predictions</p>
+                <p className="text-[11px] text-gray-600">Predictions</p>
               </div>
               <div className="bg-gray-800/40 rounded-lg p-2.5 text-center">
                 <p className="text-lg font-bold text-green-400">{winRate}%</p>
-                <p className="text-[10px] text-gray-600">Win Rate</p>
+                <p className="text-[11px] text-gray-600">Win Rate</p>
               </div>
               <div className="bg-gray-800/40 rounded-lg p-2.5 text-center">
                 <p className="text-lg font-bold text-orange-400">
                   {profile.win_streak > 0 ? profile.win_streak : "0"}
                 </p>
-                <p className="text-[10px] text-gray-600">Streak</p>
+                <p className="text-[11px] text-gray-600">Streak</p>
               </div>
               <div className="bg-gray-800/40 rounded-lg p-2.5 text-center">
                 <p className="text-lg font-bold text-purple-400">
                   {profile.best_streak}
                 </p>
-                <p className="text-[10px] text-gray-600">Best</p>
+                <p className="text-[11px] text-gray-600">Best</p>
               </div>
             </div>
 
@@ -165,7 +165,7 @@ export default async function UserProfilePage({
         </div>
 
         {!predictions || predictions.length === 0 ? (
-          <div className="text-center py-12 glass-card rounded-xl">
+          <div className="text-center py-12 card rounded-xl">
             <p className="text-4xl mb-3">🔮</p>
             <p className="text-gray-400 text-sm">No predictions yet</p>
           </div>
@@ -184,7 +184,7 @@ export default async function UserProfilePage({
               return (
                 <div
                   key={pred.id}
-                  className={`glass-card rounded-lg p-3 flex items-center justify-between border-l-2 ${
+                  className={`card rounded-lg p-3 flex items-center justify-between border-l-2 ${
                     isWin
                       ? "border-l-green-500"
                       : isLoss
@@ -200,7 +200,7 @@ export default async function UserProfilePage({
                       <span className="text-xs text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded">
                         {selectedLabel}
                       </span>
-                      <span className="text-[10px] text-gray-600">
+                      <span className="text-[11px] text-gray-600">
                         Wagered {formatCoins(pred.coins_wagered)}
                       </span>
                     </div>

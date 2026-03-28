@@ -155,7 +155,7 @@ const STRATEGIES = [
 export default function HowToPlayPage() {
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-2xl mx-auto px-4 pt-8 pb-4 text-center">
           <h1 className="text-3xl font-bold text-white mb-1">How to Play</h1>
           <p className="text-sm text-gray-500">
@@ -176,7 +176,7 @@ export default function HowToPlayPage() {
             </div>
             <div className="space-y-2.5">
               {section.items.map((item, idx) => (
-                <div key={idx} className="glass-card rounded-xl p-4 flex gap-3">
+                <div key={idx} className="card rounded-xl p-4 flex gap-3">
                   <div className="shrink-0">
                     <div className="w-9 h-9 rounded-full bg-gray-800/50 flex items-center justify-center text-lg">
                       {item.icon}
@@ -197,7 +197,7 @@ export default function HowToPlayPage() {
         ))}
 
         {/* Strategy Tips */}
-        <div className="glass-card rounded-xl p-5 mb-6">
+        <div className="card rounded-xl p-5 mb-6">
           <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
             <span className="text-lg">{"\u{1F4A1}"}</span> Pro Strategies
           </h3>
@@ -212,7 +212,7 @@ export default function HowToPlayPage() {
         </div>
 
         {/* Quick reference */}
-        <div className="glass-card rounded-xl p-5 mb-6">
+        <div className="card rounded-xl p-5 mb-6">
           <h3 className="text-sm font-semibold text-white mb-3">Quick Reference</h3>
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="bg-gray-800/30 rounded-lg p-3">

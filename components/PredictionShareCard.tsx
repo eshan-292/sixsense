@@ -173,7 +173,7 @@ export default function PredictionShareCard({
 
           {/* Branding */}
           <div className="text-center mt-2">
-            <p className="text-[10px] text-gray-600">
+            <p className="text-[11px] text-gray-600">
               SixSense — IPL Prediction Game
             </p>
           </div>

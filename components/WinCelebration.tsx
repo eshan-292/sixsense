@@ -164,7 +164,7 @@ export default function WinCelebration({
               <span className="text-purple-400 text-sm font-bold">
                 +{ssrEarned} SSR Earned
               </span>
-              <span className="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">
                 SixSense Rating
               </span>
             </div>
@@ -202,7 +202,7 @@ export default function WinCelebration({
 
           {/* Branding */}
           <div className="text-center mt-2">
-            <p className="text-[10px] text-gray-600">
+            <p className="text-[11px] text-gray-600">
               SixSense — IPL Prediction Game
             </p>
           </div>

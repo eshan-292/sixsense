@@ -1,8 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #030712;
-  --foreground: #f9fafb;
+  --background: #0f1923;
+  --foreground: #e8eaed;
+  --card-bg: #1a2332;
+  --card-border: #243040;
+  --surface: #151f2b;
+  --accent: #e63946;
+  --accent-green: #2ecc71;
+  --accent-gold: #f5a623;
+  --text-primary: #ffffff;
+  --text-secondary: #8899a6;
+  --text-muted: #556677;
 }
 
 @theme inline {
@@ -16,108 +25,83 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Animated gradient background */
-.hero-gradient {
-  background: radial-gradient(ellipse at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
-              radial-gradient(ellipse at 80% 50%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
-              radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%);
+/* ── Cards ── */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
 }
 
-/* Glassmorphism card */
-.glass-card {
-  background: rgba(17, 24, 39, 0.6);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(75, 85, 99, 0.3);
+/* ── Buttons ── */
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 20px;
+  transition: background 0.15s;
+}
+.btn-primary:active {
+  background: #c5303c;
 }
 
-/* Animated pulse for live matches */
+/* ── Live pulse ── */
 @keyframes live-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.4; }
 }
 .live-pulse {
   animation: live-pulse 1.5s ease-in-out infinite;
 }
 
-/* Smooth gradient border */
-.gradient-border {
-  position: relative;
-}
-.gradient-border::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.5), rgba(168, 85, 247, 0.3), rgba(59, 130, 246, 0.5));
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #111827;
-}
-::-webkit-scrollbar-thumb {
-  background: #374151;
-  border-radius: 3px;
-}
-
-/* Hide scrollbar for horizontal scroll areas */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+.scrollbar-hide::-webkit-scrollbar { display: none; }
 
-/* Range input styling */
+/* ── Range input ── */
 input[type="range"] {
   -webkit-appearance: none;
   height: 4px;
   border-radius: 2px;
-  background: #374151;
+  background: #334155;
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--accent);
   cursor: pointer;
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.4);
 }
 
-/* Shimmer loading effect */
+/* ── Shimmer loading ── */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 .shimmer {
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
 
-/* Team badge glow */
+/* ── Team badge ── */
 .team-badge {
-  box-shadow: 0 0 12px rgba(0,0,0,0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.team-badge:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
-/* Toast fade in */
+/* ── Toast ── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -126,32 +110,42 @@ input[type="range"]::-webkit-slider-thumb {
   animation: fadeIn 0.2s ease-out;
 }
 
-/* Safe area for bottom nav on iPhone */
+/* ── Safe area ── */
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Odds flash animations */
+/* ── Odds flash ── */
 @keyframes odds-flash-green {
-  0% { color: #4ade80; }
+  0% { color: #2ecc71; }
   100% { color: inherit; }
 }
 @keyframes odds-flash-red {
-  0% { color: #f87171; }
+  0% { color: #e63946; }
   100% { color: inherit; }
 }
-.odds-flash-up {
-  animation: odds-flash-green 1s ease-out;
-}
-.odds-flash-down {
-  animation: odds-flash-red 1s ease-out;
-}
+.odds-flash-up { animation: odds-flash-green 1s ease-out; }
+.odds-flash-down { animation: odds-flash-red 1s ease-out; }
 
-/* Activity feed slide-down */
+/* ── Slide animations ── */
 @keyframes slide-down {
-  from { opacity: 0; transform: translateY(-12px); max-height: 0; }
-  to { opacity: 1; transform: translateY(0); max-height: 100px; }
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .animate-slide-down {
-  animation: slide-down 0.35s ease-out;
+  animation: slide-down 0.3s ease-out;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* ── Confetti (keep for WinCelebration) ── */
+@keyframes confetti-fall {
+  0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
 }

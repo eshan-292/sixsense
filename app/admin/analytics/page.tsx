@@ -113,7 +113,7 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-4xl mx-auto px-4 pt-8 pb-4">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -127,21 +127,21 @@ export default function AnalyticsPage() {
 
           {/* Key Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-green-400">{data.totalUsers}</p>
-              <p className="text-[10px] text-gray-500">Users</p>
+              <p className="text-[11px] text-gray-500">Users</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-indigo-400">{data.totalPredictions}</p>
-              <p className="text-[10px] text-gray-500">Predictions</p>
+              <p className="text-[11px] text-gray-500">Predictions</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-yellow-400">{formatCoins(data.totalWagered)}</p>
-              <p className="text-[10px] text-gray-500">Total Wagered</p>
+              <p className="text-[11px] text-gray-500">Total Wagered</p>
             </div>
-            <div className="glass-card rounded-xl p-3 text-center">
+            <div className="card rounded-xl p-3 text-center">
               <p className="text-2xl font-bold text-purple-400">{formatCoins(data.totalPaidOut)}</p>
-              <p className="text-[10px] text-gray-500">Total Paid Out</p>
+              <p className="text-[11px] text-gray-500">Total Paid Out</p>
             </div>
           </div>
         </div>
@@ -150,28 +150,28 @@ export default function AnalyticsPage() {
       <div className="max-w-4xl mx-auto px-4 pb-10">
         {/* Detailed Stats Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
-          <div className="glass-card rounded-xl p-4">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Avg Coins/User</p>
+          <div className="card rounded-xl p-4">
+            <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Avg Coins/User</p>
             <p className="text-xl font-bold text-cyan-400">{formatCoins(data.avgCoinsPerUser)}</p>
           </div>
-          <div className="glass-card rounded-xl p-4">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Avg Predictions/User</p>
+          <div className="card rounded-xl p-4">
+            <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Avg Predictions/User</p>
             <p className="text-xl font-bold text-orange-400">{data.avgPredictionsPerUser}</p>
           </div>
-          <div className="glass-card rounded-xl p-4">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Avg Wager Size</p>
+          <div className="card rounded-xl p-4">
+            <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Avg Wager Size</p>
             <p className="text-xl font-bold text-emerald-400">{formatCoins(data.avgWagerAmount)}</p>
           </div>
-          <div className="glass-card rounded-xl p-4">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Match Completion</p>
+          <div className="card rounded-xl p-4">
+            <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Match Completion</p>
             <p className="text-xl font-bold text-blue-400">{data.matchCompletionRate}%</p>
           </div>
-          <div className="glass-card rounded-xl p-4">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Total Coins in Play</p>
+          <div className="card rounded-xl p-4">
+            <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Total Coins in Play</p>
             <p className="text-xl font-bold text-yellow-400">{formatCoins(data.totalCoins)}</p>
           </div>
-          <div className="glass-card rounded-xl p-4">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Market Status</p>
+          <div className="card rounded-xl p-4">
+            <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Market Status</p>
             <div className="flex gap-2 mt-1">
               <span className="text-xs text-blue-400">{data.openMarkets} open</span>
               <span className="text-xs text-yellow-400">{data.lockedMarkets} locked</span>
@@ -183,7 +183,7 @@ export default function AnalyticsPage() {
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Most Active Markets */}
-          <div className="glass-card rounded-xl p-4">
+          <div className="card rounded-xl p-4">
             <h3 className="text-sm font-semibold text-white mb-3">Most Active Markets</h3>
             {data.mostActiveMarkets.length === 0 ? (
               <p className="text-xs text-gray-500">No predictions yet</p>
@@ -200,7 +200,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Top Predictors */}
-          <div className="glass-card rounded-xl p-4">
+          <div className="card rounded-xl p-4">
             <h3 className="text-sm font-semibold text-white mb-3">Top Predictors</h3>
             {data.topPredictors.length === 0 ? (
               <p className="text-xs text-gray-500">No users yet</p>
@@ -210,7 +210,7 @@ export default function AnalyticsPage() {
                   <div key={i} className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-white font-medium">{u.display_name}</p>
-                      <p className="text-[10px] text-gray-500">
+                      <p className="text-[11px] text-gray-500">
                         {u.total_predictions}P · {u.total_wins}W · {formatCoins(u.coins)} coins
                       </p>
                     </div>

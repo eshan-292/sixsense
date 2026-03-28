@@ -1,9 +1,9 @@
 export default function MatchLoading() {
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-2xl mx-auto px-4 py-6">
-          <div className="glass-card rounded-2xl p-6 gradient-border">
+          <div className="card rounded-2xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <div className="w-40 h-3 rounded bg-gray-800/50 shimmer mb-1.5" />
@@ -32,7 +32,7 @@ export default function MatchLoading() {
           <div className="h-px flex-1 bg-gray-800/30" />
         </div>
         {[1, 2, 3].map((i) => (
-          <div key={i} className="glass-card rounded-xl p-4 mb-3">
+          <div key={i} className="card rounded-xl p-4 mb-3">
             <div className="w-48 h-4 rounded bg-gray-800/50 shimmer mb-3" />
             <div className="space-y-2">
               <div className="w-full h-12 rounded-lg bg-gray-800/30 shimmer" />

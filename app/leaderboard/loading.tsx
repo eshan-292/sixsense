@@ -1,14 +1,14 @@
 export default function LeaderboardLoading() {
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-2xl mx-auto px-4 pt-8 pb-4 text-center">
           <div className="w-48 h-9 rounded-lg bg-gray-800/50 shimmer mx-auto mb-2" />
           <div className="w-40 h-4 rounded bg-gray-800/50 shimmer mx-auto mb-6" />
         </div>
       </div>
       <div className="max-w-2xl mx-auto px-4 pb-10">
-        <div className="glass-card rounded-xl overflow-hidden">
+        <div className="card rounded-xl overflow-hidden">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}

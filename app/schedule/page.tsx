@@ -25,7 +25,7 @@ export default async function SchedulePage() {
 
   return (
     <div className="min-h-screen">
-      <div className="hero-gradient">
+      <div >
         <div className="max-w-2xl mx-auto px-4 pt-8 pb-4 text-center">
           <h1 className="text-3xl font-bold text-white mb-1">
             IPL 2026 Schedule
@@ -37,19 +37,19 @@ export default async function SchedulePage() {
           <div className="flex items-center justify-center gap-6">
             <div className="text-center">
               <p className="text-xl font-bold text-green-400">{completedMatches}</p>
-              <p className="text-[10px] text-gray-500">Completed</p>
+              <p className="text-[11px] text-gray-500">Completed</p>
             </div>
             <div className="w-px h-8 bg-gray-800" />
             <div className="text-center">
               <p className="text-xl font-bold text-yellow-400">{liveMatches}</p>
-              <p className="text-[10px] text-gray-500">Live</p>
+              <p className="text-[11px] text-gray-500">Live</p>
             </div>
             <div className="w-px h-8 bg-gray-800" />
             <div className="text-center">
               <p className="text-xl font-bold text-blue-400">
                 {totalMatches - completedMatches - liveMatches}
               </p>
-              <p className="text-[10px] text-gray-500">Upcoming</p>
+              <p className="text-[11px] text-gray-500">Upcoming</p>
             </div>
           </div>
         </div>

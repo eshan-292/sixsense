@@ -31,7 +31,7 @@ export default function LiveScoreWidget({
   teamBShort,
   matchStatus,
 }: LiveScoreWidgetProps) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [score, setScore] = useState<ScoreData | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -75,7 +75,7 @@ export default function LiveScoreWidget({
   const hasAnyScore = hasScore && (score.teamAScore || score.teamBScore);
 
   return (
-    <div className="mt-4 bg-gray-900/60 backdrop-blur-xl border border-gray-800 rounded-xl overflow-hidden">
+    <div className="card mb-4 overflow-hidden">
       {/* Header */}
       <div
         className="flex items-center justify-between px-4 py-2.5 cursor-pointer hover:bg-gray-800/30 transition-colors"
@@ -96,7 +96,7 @@ export default function LiveScoreWidget({
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
+            className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
           >
             Cricbuzz ↗
           </a>
@@ -205,7 +205,7 @@ export default function LiveScoreWidget({
 
           {/* Footer */}
           <div className="px-4 py-2 flex items-center justify-between border-t border-gray-800 bg-gray-900/40">
-            <span className="text-[10px] text-gray-600">
+            <span className="text-[11px] text-gray-600">
               {lastUpdated
                 ? `Updated ${lastUpdated.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`
                 : "Live score via Cricbuzz"}
@@ -216,7 +216,7 @@ export default function LiveScoreWidget({
                 href={cricbuzzUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
+                className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors"
               >
                 Cricbuzz
               </a>
@@ -224,7 +224,7 @@ export default function LiveScoreWidget({
                 href="https://www.espncricinfo.com/live-cricket-score"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors"
+                className="text-[11px] text-gray-500 hover:text-gray-300 transition-colors"
               >
                 ESPNcricinfo
               </a>
@@ -234,7 +234,7 @@ export default function LiveScoreWidget({
                   setLoading(true);
                   fetchScore();
                 }}
-                className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors"
+                className="text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors"
               >
                 Refresh
               </button>
