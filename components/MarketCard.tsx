@@ -12,9 +12,9 @@ const SSR_REWARDS: Record<MarketTier, number> = {
 };
 
 const TIER_CONFIG: Record<MarketTier, { label: string; color: string; bgColor: string }> = {
-  easy: { label: "Easy", color: "text-green-400", bgColor: "bg-green-500/10 border-green-500/20" },
-  medium: { label: "Medium", color: "text-yellow-400", bgColor: "bg-yellow-500/10 border-yellow-500/20" },
-  hard: { label: "Hard", color: "text-red-400", bgColor: "bg-red-500/10 border-red-500/20" },
+  easy: { label: "Safe Pick", color: "text-green-400", bgColor: "bg-green-500/10 border-green-500/20" },
+  medium: { label: "Smart Call", color: "text-yellow-400", bgColor: "bg-yellow-500/10 border-yellow-500/20" },
+  hard: { label: "Bold Prediction", color: "text-red-400", bgColor: "bg-red-500/10 border-red-500/20" },
 };
 
 interface Props {
@@ -206,13 +206,13 @@ export default function MarketCard({
                 </div>
                 <div className="flex items-center gap-3">
                   <span
-                    className={`text-xs font-mono px-1.5 py-0.5 rounded ${
+                    className={`text-xs px-1.5 py-0.5 rounded ${
                       isSelected
                         ? "bg-indigo-500/20 text-indigo-300"
                         : "bg-gray-800/50 text-gray-500"
                     }`}
                   >
-                    {option.odds}x
+                    Win {formatCoins(Math.floor(wager * option.odds))}
                   </span>
                   {totalPredictions > 0 && (
                     <span className="text-[10px] text-gray-600 min-w-[28px] text-right">
@@ -298,7 +298,7 @@ export default function MarketCard({
           />
           <div className="flex items-center justify-between text-[10px] text-gray-600">
             <span>100</span>
-            <span>Potential win: <span className="text-green-400 font-medium">{formatCoins(potentialWin)} coins</span> | <span className="text-purple-400 font-medium">+{ssrReward} SSR</span></span>
+            <span>Bet {wager} → <span className="text-green-400 font-medium">Win {formatCoins(potentialWin)}</span> + <span className="text-purple-400 font-medium">+{ssrReward} SSR</span></span>
             <span>{Math.min(1000, userProfile.coins)}</span>
           </div>
 

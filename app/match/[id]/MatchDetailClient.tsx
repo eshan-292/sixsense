@@ -9,9 +9,9 @@ import Link from "next/link";
 import type { Match, Market, MarketTier, Prediction, Profile } from "@/lib/types";
 
 const TIER_SECTIONS: { tier: MarketTier; label: string; icon: string; description: string }[] = [
-  { tier: "easy", label: "EASY CALLS", icon: "\u{1F7E2}", description: "1.5-2x odds" },
-  { tier: "medium", label: "CRICKET BRAIN", icon: "\u{1F7E1}", description: "2.5-4x odds" },
-  { tier: "hard", label: "BOLD CALLS", icon: "\u{1F534}", description: "5-15x odds" },
+  { tier: "easy", label: "SAFE PICKS", icon: "\u{1F7E2}", description: "+10 SSR per correct" },
+  { tier: "medium", label: "SMART CALLS", icon: "\u{1F7E1}", description: "+25 SSR per correct" },
+  { tier: "hard", label: "BOLD PREDICTIONS", icon: "\u{1F534}", description: "+50 SSR per correct" },
 ];
 
 export default function MatchDetailClient({
@@ -151,7 +151,7 @@ export default function MatchDetailClient({
       if (!res.ok) throw new Error(data.error || "Failed to place parlay");
 
       setParlaySuccess(
-        `Parlay placed! ${parlayCount} picks at ${combinedOdds.toFixed(1)}x odds. Potential payout: ${formatCoins(data.potential_payout)} coins`
+        `Parlay placed! ${parlayCount} picks combined. Bet ${formatCoins(parlayWager)} to win ${formatCoins(data.potential_payout)}!`
       );
       setParlaySelections({});
       setParlayMode(false);
@@ -351,7 +351,7 @@ export default function MatchDetailClient({
                   {!parlayMode ? (
                     <div className="text-center">
                       <p className="text-sm text-gray-400 mb-3">
-                        Combine 2-4 predictions for massive odds! Higher risk, higher reward.
+                        Combine 2-4 predictions for massive payouts! Get them all right to win big.
                       </p>
                       <button
                         onClick={() => setParlayMode(true)}
@@ -399,8 +399,8 @@ export default function MatchDetailClient({
                                     {option?.label}
                                   </p>
                                 </div>
-                                <span className="text-xs font-mono text-indigo-400 ml-2">
-                                  {option?.odds}x
+                                <span className="text-xs text-indigo-400 ml-2">
+                                  Win {option ? `${option.odds}x` : ""}
                                 </span>
                               </div>
                             );
@@ -411,9 +411,9 @@ export default function MatchDetailClient({
                       {/* Combined odds display */}
                       <div className="bg-gray-800/30 rounded-lg p-3 mb-3">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs text-gray-400">Combined Odds</span>
+                          <span className="text-xs text-gray-400">Win Multiplier</span>
                           <span className="text-lg font-bold text-purple-400">
-                            {combinedOdds.toFixed(1)}x
+                            {combinedOdds.toFixed(1)}x your bet
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
@@ -434,9 +434,8 @@ export default function MatchDetailClient({
                         <div className="flex items-center justify-between text-[10px] text-gray-600 mt-1">
                           <span>100</span>
                           <span>
-                            Potential payout:{" "}
-                            <span className="text-green-400 font-medium">
-                              {formatCoins(potentialParlayPayout)} coins
+                            Bet {parlayWager} → <span className="text-green-400 font-medium">
+                              Win {formatCoins(potentialParlayPayout)}
                             </span>
                           </span>
                           <span>{Math.min(2000, profile.coins)}</span>
@@ -467,7 +466,7 @@ export default function MatchDetailClient({
                         ) : parlayCount < 2 ? (
                           `Select ${2 - parlayCount} more market${2 - parlayCount > 1 ? "s" : ""}`
                         ) : (
-                          `Place Parlay (${parlayCount} picks at ${combinedOdds.toFixed(1)}x)`
+                          `Place Parlay — ${parlayCount} picks → Win ${formatCoins(potentialParlayPayout)}`
                         )}
                       </button>
                     </div>

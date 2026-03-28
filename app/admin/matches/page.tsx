@@ -5,10 +5,10 @@ import { createClient } from "@/lib/supabase/client";
 import type { Match, Market, MarketOption, MarketTier } from "@/lib/types";
 
 const SSR_REWARDS: Record<MarketTier, number> = { easy: 10, medium: 25, hard: 50 };
-const TIER_ODDS_RANGES: Record<MarketTier, string> = {
-  easy: "1.5-2x odds",
-  medium: "2.5-4x odds",
-  hard: "5-15x odds",
+const TIER_LABELS: Record<MarketTier, { name: string; range: string }> = {
+  easy: { name: "Safe Pick", range: "Low risk, small reward" },
+  medium: { name: "Smart Call", range: "Medium risk, good reward" },
+  hard: { name: "Bold Prediction", range: "High risk, huge reward" },
 };
 
 const IPL_TEAMS = [
@@ -397,8 +397,8 @@ export default function ManageMatchesPage() {
                     : "bg-gray-800 border-gray-700 text-gray-500"
                 }`}
               >
-                <div>{tier === "easy" ? "Easy" : tier === "medium" ? "Medium" : "Hard"}</div>
-                <div className="text-[10px] opacity-70 mt-0.5">{TIER_ODDS_RANGES[tier]}</div>
+                <div>{TIER_LABELS[tier].name}</div>
+                <div className="text-[10px] opacity-70 mt-0.5">{TIER_LABELS[tier].range}</div>
                 <div className="text-[10px] opacity-70">+{SSR_REWARDS[tier]} SSR</div>
               </button>
             ))}
