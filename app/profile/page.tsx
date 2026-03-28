@@ -110,6 +110,34 @@ export default function ProfilePage() {
     setClaiming(false);
   };
 
+  const winRate =
+    profile && profile.total_predictions > 0
+      ? ((profile.total_wins / profile.total_predictions) * 100).toFixed(0)
+      : "0";
+
+  const totalWon = predictions
+    .filter((p) => p.coins_won !== null && p.coins_won > 0)
+    .reduce((sum, p) => sum + (p.coins_won ?? 0), 0);
+  const totalLost = predictions
+    .filter((p) => p.coins_won !== null && p.coins_won === 0)
+    .reduce((sum, p) => sum + p.coins_wagered, 0);
+
+  const parlayWins = parlays.filter((p) => p.status === "won").length;
+  const parlayLosses = parlays.filter((p) => p.status === "lost").length;
+
+  const achievementResults = useMemo(() => {
+    if (!profile) return [];
+    const stats: UserStats = { profile, predictions: allPredictions, parlays };
+    return computeEarnedAchievements(stats);
+  }, [profile, allPredictions, parlays]);
+
+  const earnedIds = useMemo(
+    () => new Set(achievementResults.filter((r) => r.earned).map((r) => r.achievement.id)),
+    [achievementResults]
+  );
+
+  const earnedAchievements = achievementResults.filter((r) => r.earned);
+
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
@@ -155,34 +183,6 @@ export default function ProfilePage() {
       </div>
     );
   }
-
-  const winRate =
-    profile.total_predictions > 0
-      ? ((profile.total_wins / profile.total_predictions) * 100).toFixed(0)
-      : "0";
-
-  const totalWon = predictions
-    .filter((p) => p.coins_won !== null && p.coins_won > 0)
-    .reduce((sum, p) => sum + (p.coins_won ?? 0), 0);
-  const totalLost = predictions
-    .filter((p) => p.coins_won !== null && p.coins_won === 0)
-    .reduce((sum, p) => sum + p.coins_wagered, 0);
-
-  const parlayWins = parlays.filter((p) => p.status === "won").length;
-  const parlayLosses = parlays.filter((p) => p.status === "lost").length;
-
-  const achievementResults = useMemo(() => {
-    if (!profile) return [];
-    const stats: UserStats = { profile, predictions: allPredictions, parlays };
-    return computeEarnedAchievements(stats);
-  }, [profile, allPredictions, parlays]);
-
-  const earnedIds = useMemo(
-    () => new Set(achievementResults.filter((r) => r.earned).map((r) => r.achievement.id)),
-    [achievementResults]
-  );
-
-  const earnedAchievements = achievementResults.filter((r) => r.earned);
 
   return (
     <div className="min-h-screen">
