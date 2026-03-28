@@ -59,12 +59,15 @@ export async function POST(request: Request) {
     .select("*")
     .eq("market_id", market_id);
 
+  let totalPaidOut = 0;
+
   if (predictions) {
     for (const pred of predictions) {
       const isWinner = pred.selected_option_id === correct_option_id;
       const coinsWon = isWinner
         ? Math.floor(pred.coins_wagered * winningOption.odds)
         : 0;
+      totalPaidOut += coinsWon;
 
       // Update prediction with result
       await admin
@@ -104,5 +107,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     success: true,
     predictions_settled: predictions?.length || 0,
+    total_paid_out: totalPaidOut,
   });
 }

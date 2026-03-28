@@ -13,37 +13,36 @@ export default function AdminPage() {
   const [stats, setStats] = useState({ players: 0, predictions: 0 });
   const supabase = createClient();
 
-  useEffect(() => {
-    async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", user.id)
-        .single();
-      if (!profile?.is_admin) { setLoading(false); return; }
-      setIsAdmin(true);
+  const loadData = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) { setLoading(false); return; }
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+    if (!profile?.is_admin) { setLoading(false); return; }
+    setIsAdmin(true);
 
-      const [matchesRes, marketsRes, playersRes, predsRes] = await Promise.all([
-        supabase.from("matches").select("*").order("match_date", { ascending: true }),
-        supabase.from("markets").select("*").order("created_at", { ascending: true }),
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("predictions").select("*", { count: "exact", head: true }),
-      ]);
+    const [matchesRes, marketsRes, playersRes, predsRes] = await Promise.all([
+      supabase.from("matches").select("*").order("match_date", { ascending: true }),
+      supabase.from("markets").select("*").order("created_at", { ascending: true }),
+      supabase.from("profiles").select("*", { count: "exact", head: true }),
+      supabase.from("predictions").select("*", { count: "exact", head: true }),
+    ]);
 
-      setMatches(matchesRes.data || []);
-      setMarkets(marketsRes.data || []);
-      setStats({
-        players: playersRes.count || 0,
-        predictions: predsRes.count || 0,
-      });
-      setLoading(false);
-    }
-    load();
-  }, []);
+    setMatches(matchesRes.data || []);
+    setMarkets(marketsRes.data || []);
+    setStats({
+      players: playersRes.count || 0,
+      predictions: predsRes.count || 0,
+    });
+    setLoading(false);
+  };
+
+  useEffect(() => { loadData(); }, []);
 
   if (loading) return (
     <div className="max-w-2xl mx-auto px-4 py-20 text-center">
@@ -147,7 +146,7 @@ export default function AdminPage() {
             </div>
             <div className="space-y-2">
               {todayMatches.map((match) => (
-                <MatchRow key={match.id} match={match} markets={markets} />
+                <MatchRow key={match.id} match={match} markets={markets} supabase={supabase} onUpdate={loadData} />
               ))}
             </div>
           </section>
@@ -162,7 +161,7 @@ export default function AdminPage() {
           </div>
           <div className="space-y-2">
             {upcomingMatches.slice(0, 10).map((match) => (
-              <MatchRow key={match.id} match={match} markets={markets} />
+              <MatchRow key={match.id} match={match} markets={markets} supabase={supabase} onUpdate={loadData} />
             ))}
           </div>
         </section>
@@ -171,9 +170,32 @@ export default function AdminPage() {
   );
 }
 
-function MatchRow({ match, markets }: { match: Match; markets: Market[] }) {
+function MatchRow({
+  match,
+  markets,
+  supabase,
+  onUpdate,
+}: {
+  match: Match;
+  markets: Market[];
+  supabase: any;
+  onUpdate: () => void;
+}) {
   const matchMarkets = markets.filter((m) => m.match_id === match.id);
   const hasMarkets = matchMarkets.length > 0;
+
+  const handleStatusChange = async (newStatus: string) => {
+    await supabase.from("matches").update({ status: newStatus }).eq("id", match.id);
+    if (newStatus === "live") {
+      await supabase
+        .from("markets")
+        .update({ status: "locked" })
+        .eq("match_id", match.id)
+        .eq("status", "open");
+    }
+    onUpdate();
+  };
+
   return (
     <div className="glass-card rounded-lg p-3 flex items-center justify-between">
       <div className="min-w-0">
@@ -202,6 +224,22 @@ function MatchRow({ match, markets }: { match: Match; markets: Market[] }) {
           <span className="text-[9px] bg-orange-500/10 text-orange-400 px-1.5 py-0.5 rounded font-medium">
             Needs markets
           </span>
+        )}
+        {match.status === "upcoming" && (
+          <button
+            onClick={() => handleStatusChange("live")}
+            className="text-[10px] bg-green-600 hover:bg-green-500 text-white px-2 py-0.5 rounded transition-colors"
+          >
+            Go Live
+          </button>
+        )}
+        {match.status === "live" && (
+          <button
+            onClick={() => handleStatusChange("completed")}
+            className="text-[10px] bg-gray-600 hover:bg-gray-500 text-white px-2 py-0.5 rounded transition-colors"
+          >
+            Complete
+          </button>
         )}
         <span
           className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
