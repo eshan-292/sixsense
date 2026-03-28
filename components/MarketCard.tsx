@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { formatCoins } from "@/lib/utils";
+import { useToast } from "./Toast";
 import type { Market, Prediction, Profile } from "@/lib/types";
 
 interface Props {
@@ -25,6 +26,7 @@ export default function MarketCard({
   const [wager, setWager] = useState(200);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { showToast } = useToast();
 
   const isLocked = market.status !== "open";
   const hasPredicted = !!existingPrediction;
@@ -57,10 +59,13 @@ export default function MarketCard({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to place prediction");
 
+      const pickedLabel = market.options.find((o) => o.id === selectedOption)?.label;
+      showToast(`Prediction placed! "${pickedLabel}" for 🪙 ${wager}`, "success");
       onPredictionPlaced();
       setSelectedOption(null);
     } catch (err: any) {
       setError(err.message);
+      showToast(err.message, "error");
     } finally {
       setLoading(false);
     }
@@ -213,6 +218,7 @@ export default function MarketCard({
                   navigator.share({ text, url: window.location.href });
                 } else {
                   navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+                  showToast("Copied to clipboard!", "success");
                 }
               }}
               className="text-[10px] text-indigo-400 hover:text-indigo-300 transition-colors shrink-0 ml-2"

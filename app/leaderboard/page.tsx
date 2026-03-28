@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatCoins } from "@/lib/utils";
+import LeaderboardTable from "./LeaderboardTable";
 import type { Metadata } from "next";
 import type { LeaderboardEntry } from "@/lib/types";
 
@@ -37,7 +38,6 @@ export default async function LeaderboardPage() {
     userRank = (count ?? 0) + 1;
   }
 
-  const medals = ["🥇", "🥈", "🥉"];
 
   return (
     <div className="min-h-screen">
@@ -153,111 +153,10 @@ export default async function LeaderboardPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 pb-10">
-        {/* Full rankings table */}
-        <div className="glass-card rounded-xl overflow-hidden">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-800">
-                <th className="text-left text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">
-                  Rank
-                </th>
-                <th className="text-left text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">
-                  Player
-                </th>
-                <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 uppercase tracking-wider">
-                  Coins
-                </th>
-                <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 hidden sm:table-cell uppercase tracking-wider">
-                  Record
-                </th>
-                <th className="text-right text-[10px] text-gray-500 font-medium py-3 px-4 hidden sm:table-cell uppercase tracking-wider">
-                  Streak
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {leaders?.map((leader: LeaderboardEntry, idx: number) => {
-                const isCurrentUser = leader.id === user?.id;
-                return (
-                  <tr
-                    key={leader.id}
-                    className={`border-b border-gray-800/30 transition-colors ${
-                      isCurrentUser
-                        ? "bg-indigo-500/10"
-                        : "hover:bg-gray-800/30"
-                    }`}
-                  >
-                    <td className="py-3 px-4 text-sm">
-                      {idx < 3 ? (
-                        <span className="text-lg">{medals[idx]}</span>
-                      ) : (
-                        <span className="text-gray-500 font-mono text-xs">
-                          {idx + 1}
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2.5">
-                        {leader.avatar_url ? (
-                          <img
-                            src={leader.avatar_url}
-                            alt=""
-                            className="w-7 h-7 rounded-full border border-gray-700"
-                          />
-                        ) : (
-                          <div className="w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-bold text-white">
-                            {leader.display_name?.[0] || "?"}
-                          </div>
-                        )}
-                        <span className="text-sm text-white font-medium truncate max-w-[140px]">
-                          {leader.display_name}
-                          {isCurrentUser && (
-                            <span className="text-indigo-400 text-xs ml-1.5">
-                              (You)
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <span className="text-sm font-semibold text-yellow-400">
-                        🪙 {formatCoins(leader.coins)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right text-xs hidden sm:table-cell">
-                      <span className="text-green-400 font-medium">
-                        {leader.total_wins}W
-                      </span>
-                      <span className="text-gray-600 mx-0.5">/</span>
-                      <span className="text-red-400 font-medium">
-                        {(leader.total_predictions ?? 0) - (leader.total_wins ?? 0)}L
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right text-xs hidden sm:table-cell">
-                      {leader.win_streak > 0 ? (
-                        <span className="text-orange-400 font-medium">
-                          🔥 {leader.win_streak}
-                        </span>
-                      ) : (
-                        <span className="text-gray-700">-</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-
-          {(!leaders || leaders.length === 0) && (
-            <div className="text-center py-16">
-              <p className="text-4xl mb-3">🏆</p>
-              <p className="text-gray-400">No players yet.</p>
-              <p className="text-gray-600 text-xs mt-1">
-                Sign up and start predicting!
-              </p>
-            </div>
-          )}
-        </div>
+        <LeaderboardTable
+          leaders={leaders || []}
+          currentUserId={user?.id}
+        />
 
         {userRank && userRank > 50 && (
           <p className="text-center text-sm text-gray-400 mt-4">
