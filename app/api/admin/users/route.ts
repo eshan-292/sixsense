@@ -53,5 +53,29 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true });
   }
 
+  if (action === "delete_user") {
+    // Prevent deleting yourself
+    if (user_id === adminUser.id) {
+      return NextResponse.json({ error: "Cannot delete yourself" }, { status: 400 });
+    }
+
+    // Delete predictions, parlays, then profile, then auth user
+    await admin.from("predictions").delete().eq("user_id", user_id);
+    await admin.from("parlays").delete().eq("user_id", user_id);
+    await admin.from("parlay_legs").delete().eq("user_id", user_id);
+    await admin.from("profiles").delete().eq("id", user_id);
+
+    // Delete from Supabase Auth
+    const { error: authError } = await admin.auth.admin.deleteUser(user_id);
+    if (authError) {
+      return NextResponse.json({
+        success: true,
+        warning: "Profile deleted but auth user removal failed: " + authError.message,
+      });
+    }
+
+    return NextResponse.json({ success: true, deleted: true });
+  }
+
   return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 }
