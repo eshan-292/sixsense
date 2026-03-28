@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import MatchDetailClient from "./MatchDetailClient";
+import { autoUpdateMatchStatuses } from "@/lib/auto-status";
 import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +39,10 @@ export default async function MatchPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+
+  // Auto-transition matches past their scheduled time
+  await autoUpdateMatchStatuses();
+
   const supabase = await createClient();
 
   const { data: match } = await supabase

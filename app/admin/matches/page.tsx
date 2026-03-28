@@ -239,6 +239,40 @@ export default function ManageMatchesPage() {
     loadData();
   };
 
+  const handleResetMatch = async (matchId: string) => {
+    if (!confirm("Reset this match? This will reopen all markets and clear all settlement results. Predictions will keep their wagers but lose settlement data.")) return;
+
+    // Reset match to upcoming
+    await supabase
+      .from("matches")
+      .update({ status: "upcoming", result: null })
+      .eq("id", matchId);
+
+    // Reset all markets to open, clear correct_option_id
+    await supabase
+      .from("markets")
+      .update({ status: "open", correct_option_id: null })
+      .eq("match_id", matchId);
+
+    // Reset predictions: clear coins_won and ssr_earned
+    const { data: markets } = await supabase
+      .from("markets")
+      .select("id")
+      .eq("match_id", matchId);
+
+    if (markets) {
+      for (const market of markets) {
+        await supabase
+          .from("predictions")
+          .update({ coins_won: null, ssr_earned: 0 })
+          .eq("market_id", market.id);
+      }
+    }
+
+    setMsg("Match reset to upcoming. Note: user coin balances were NOT reverted — do that manually if needed.");
+    loadData();
+  };
+
   if (loading) return <div className="max-w-3xl mx-auto px-4 py-16 text-center text-gray-500">Loading...</div>;
   if (!isAdmin) return <div className="max-w-3xl mx-auto px-4 py-16 text-center text-red-400">Access denied.</div>;
 
@@ -512,6 +546,14 @@ export default function ManageMatchesPage() {
                   className="text-xs bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded"
                 >
                   Complete
+                </button>
+              )}
+              {(match.status === "live" || match.status === "completed") && (
+                <button
+                  onClick={() => handleResetMatch(match.id)}
+                  className="text-xs bg-red-600/80 hover:bg-red-500 text-white px-2 py-1 rounded"
+                >
+                  Reset
                 </button>
               )}
             </div>

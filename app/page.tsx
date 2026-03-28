@@ -1,12 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import MatchCard from "@/components/MatchCard";
 import NextMatchCountdown from "@/components/NextMatchCountdown";
+import { autoUpdateMatchStatuses } from "@/lib/auto-status";
 import type { Match } from "@/lib/types";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  // Auto-transition matches past their scheduled time
+  await autoUpdateMatchStatuses();
+
   const supabase = await createClient();
 
   const today = new Date();
