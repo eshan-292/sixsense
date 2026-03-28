@@ -27,7 +27,7 @@ const SECTIONS = [
         icon: "\u{1FA99}",
         title: "Wager Coins",
         description:
-          "You start with 10,000 virtual coins. Wager 100\u2013500 coins per prediction. No real money — ever!",
+          "You start with 10,000 virtual coins. Wager 10\u2013500 coins per prediction. No real money — ever!",
       },
     ],
   },
@@ -221,7 +221,7 @@ export default function HowToPlayPage() {
             </div>
             <div className="bg-gray-800/30 rounded-lg p-3">
               <p className="text-gray-500 mb-1">Wager Range</p>
-              <p className="text-white font-semibold">100 - 500</p>
+              <p className="text-white font-semibold">10 - 500</p>
             </div>
             <div className="bg-gray-800/30 rounded-lg p-3">
               <p className="text-gray-500 mb-1">Daily Bonus</p>

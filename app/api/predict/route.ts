@@ -17,9 +17,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
 
-  if (coins_wagered < 100 || coins_wagered > 500) {
+  if (coins_wagered < 10 || coins_wagered > 500) {
     return NextResponse.json(
-      { error: "Wager must be between 100 and 500" },
+      { error: "Wager must be between 10 and 500" },
       { status: 400 }
     );
   }
