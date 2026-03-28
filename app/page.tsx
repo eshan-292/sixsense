@@ -86,7 +86,7 @@ export default async function Home() {
             Upcoming
           </h2>
           <div className="space-y-3">
-            {upcomingMatches.slice(0, 2).map((match: Match) => (
+            {upcomingMatches.slice(0, 1).map((match: Match) => (
               <MatchCard key={match.id} match={match} />
             ))}
           </div>

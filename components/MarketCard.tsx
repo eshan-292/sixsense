@@ -222,17 +222,24 @@ export default function MarketCard({
                     {option.label}
                   </span>
                 </div>
-                <span
-                  className={`text-sm font-bold font-mono ${
-                    oddsFlash[option.id] === "up"
-                      ? "odds-flash-up"
-                      : oddsFlash[option.id] === "down"
-                        ? "odds-flash-down"
-                        : ""
-                  } ${isSelected ? "text-[#e63946]" : "text-[#8899a6]"}`}
-                >
-                  {liveOdds[option.id]?.toFixed(2)}x
-                </span>
+                <div className="flex items-center gap-2">
+                  {count > 0 && (
+                    <span className="text-[11px] text-[#556677]">
+                      {count} {count === 1 ? "bet" : "bets"}
+                    </span>
+                  )}
+                  <span
+                    className={`text-sm font-bold font-mono ${
+                      oddsFlash[option.id] === "up"
+                        ? "odds-flash-up"
+                        : oddsFlash[option.id] === "down"
+                          ? "odds-flash-down"
+                          : ""
+                    } ${isSelected ? "text-[#e63946]" : "text-[#8899a6]"}`}
+                  >
+                    {liveOdds[option.id]?.toFixed(2)}x
+                  </span>
+                </div>
               </div>
             </button>
           );
