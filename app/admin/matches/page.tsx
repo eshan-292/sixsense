@@ -273,6 +273,89 @@ export default function ManageMatchesPage() {
     loadData();
   };
 
+  const handleClearBets = async (matchId: string) => {
+    if (!confirm("Clear ALL bets for this match? This will DELETE every prediction, REFUND wagered coins to users, and revert their stats. This cannot be undone.")) return;
+
+    // Get all markets for this match
+    const { data: markets } = await supabase
+      .from("markets")
+      .select("id")
+      .eq("match_id", matchId);
+
+    if (!markets || markets.length === 0) {
+      setMsg("No markets found for this match.");
+      return;
+    }
+
+    const marketIds = markets.map((m) => m.id);
+
+    // Get all predictions for these markets
+    const { data: predictions } = await supabase
+      .from("predictions")
+      .select("id, user_id, coins_wagered, coins_won")
+      .in("market_id", marketIds);
+
+    if (!predictions || predictions.length === 0) {
+      setMsg("No predictions to clear.");
+      return;
+    }
+
+    // Refund each user: add back wagered coins, subtract any winnings already paid
+    const userRefunds: Record<string, number> = {};
+    const userPredCounts: Record<string, number> = {};
+    const userWinCounts: Record<string, number> = {};
+    const userLossCounts: Record<string, number> = {};
+
+    for (const pred of predictions) {
+      const refund = pred.coins_wagered - (pred.coins_won || 0);
+      userRefunds[pred.user_id] = (userRefunds[pred.user_id] || 0) + refund;
+      userPredCounts[pred.user_id] = (userPredCounts[pred.user_id] || 0) + 1;
+      if (pred.coins_won !== null && pred.coins_won > 0) {
+        userWinCounts[pred.user_id] = (userWinCounts[pred.user_id] || 0) + 1;
+      } else if (pred.coins_won !== null) {
+        userLossCounts[pred.user_id] = (userLossCounts[pred.user_id] || 0) + 1;
+      }
+    }
+
+    // Apply refunds and revert stats
+    for (const [userId, refund] of Object.entries(userRefunds)) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("coins, total_predictions, total_wins, total_losses, ssr")
+        .eq("id", userId)
+        .single();
+
+      if (profile) {
+        await supabase
+          .from("profiles")
+          .update({
+            coins: profile.coins + refund,
+            total_predictions: Math.max(0, profile.total_predictions - (userPredCounts[userId] || 0)),
+            total_wins: Math.max(0, profile.total_wins - (userWinCounts[userId] || 0)),
+            total_losses: Math.max(0, profile.total_losses - (userLossCounts[userId] || 0)),
+          })
+          .eq("id", userId);
+      }
+    }
+
+    // Delete all predictions
+    for (const marketId of marketIds) {
+      await supabase
+        .from("predictions")
+        .delete()
+        .eq("market_id", marketId);
+    }
+
+    // Also delete any parlays for this match
+    await supabase
+      .from("parlays")
+      .delete()
+      .eq("match_id", matchId);
+
+    setMsg(`Cleared ${predictions.length} predictions across ${markets.length} markets. Coins refunded to ${Object.keys(userRefunds).length} users.`);
+    loadData();
+  };
+
   if (loading) return <div className="max-w-3xl mx-auto px-4 py-16 text-center text-gray-500">Loading...</div>;
   if (!isAdmin) return <div className="max-w-3xl mx-auto px-4 py-16 text-center text-red-400">Access denied.</div>;
 
@@ -556,6 +639,12 @@ export default function ManageMatchesPage() {
                   Reset
                 </button>
               )}
+              <button
+                onClick={() => handleClearBets(match.id)}
+                className="text-xs bg-orange-600/80 hover:bg-orange-500 text-white px-2 py-1 rounded"
+              >
+                Clear Bets
+              </button>
             </div>
           </div>
         ))}
