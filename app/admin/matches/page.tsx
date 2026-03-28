@@ -242,118 +242,47 @@ export default function ManageMatchesPage() {
   const handleResetMatch = async (matchId: string) => {
     if (!confirm("Reset this match? This will reopen all markets and clear all settlement results. Predictions will keep their wagers but lose settlement data.")) return;
 
-    // Reset match to upcoming
-    await supabase
-      .from("matches")
-      .update({ status: "upcoming", result: null })
-      .eq("id", matchId);
-
-    // Reset all markets to open, clear correct_option_id
-    await supabase
-      .from("markets")
-      .update({ status: "open", correct_option_id: null })
-      .eq("match_id", matchId);
-
-    // Reset predictions: clear coins_won and ssr_earned
-    const { data: markets } = await supabase
-      .from("markets")
-      .select("id")
-      .eq("match_id", matchId);
-
-    if (markets) {
-      for (const market of markets) {
-        await supabase
-          .from("predictions")
-          .update({ coins_won: null, ssr_earned: 0 })
-          .eq("market_id", market.id);
+    try {
+      const res = await fetch("/api/admin/reset-match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ match_id: matchId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMsg(`Error: ${data.error}`);
+        return;
       }
+      setMsg("Match reset to upcoming. Note: user coin balances were NOT reverted — do that manually if needed, or use Clear Bets.");
+      loadData();
+    } catch {
+      setMsg("Failed to reset match. Check console for details.");
     }
-
-    setMsg("Match reset to upcoming. Note: user coin balances were NOT reverted — do that manually if needed.");
-    loadData();
   };
 
   const handleClearBets = async (matchId: string) => {
     if (!confirm("Clear ALL bets for this match? This will DELETE every prediction, REFUND wagered coins to users, and revert their stats. This cannot be undone.")) return;
 
-    // Get all markets for this match
-    const { data: markets } = await supabase
-      .from("markets")
-      .select("id")
-      .eq("match_id", matchId);
-
-    if (!markets || markets.length === 0) {
-      setMsg("No markets found for this match.");
-      return;
-    }
-
-    const marketIds = markets.map((m) => m.id);
-
-    // Get all predictions for these markets
-    const { data: predictions } = await supabase
-      .from("predictions")
-      .select("id, user_id, coins_wagered, coins_won")
-      .in("market_id", marketIds);
-
-    if (!predictions || predictions.length === 0) {
-      setMsg("No predictions to clear.");
-      return;
-    }
-
-    // Refund each user: add back wagered coins, subtract any winnings already paid
-    const userRefunds: Record<string, number> = {};
-    const userPredCounts: Record<string, number> = {};
-    const userWinCounts: Record<string, number> = {};
-    const userLossCounts: Record<string, number> = {};
-
-    for (const pred of predictions) {
-      const refund = pred.coins_wagered - (pred.coins_won || 0);
-      userRefunds[pred.user_id] = (userRefunds[pred.user_id] || 0) + refund;
-      userPredCounts[pred.user_id] = (userPredCounts[pred.user_id] || 0) + 1;
-      if (pred.coins_won !== null && pred.coins_won > 0) {
-        userWinCounts[pred.user_id] = (userWinCounts[pred.user_id] || 0) + 1;
-      } else if (pred.coins_won !== null) {
-        userLossCounts[pred.user_id] = (userLossCounts[pred.user_id] || 0) + 1;
+    try {
+      const res = await fetch("/api/admin/clear-bets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ match_id: matchId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMsg(`Error: ${data.error}`);
+        return;
       }
-    }
-
-    // Apply refunds and revert stats
-    for (const [userId, refund] of Object.entries(userRefunds)) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("coins, total_predictions, total_wins, total_losses, ssr")
-        .eq("id", userId)
-        .single();
-
-      if (profile) {
-        await supabase
-          .from("profiles")
-          .update({
-            coins: profile.coins + refund,
-            total_predictions: Math.max(0, profile.total_predictions - (userPredCounts[userId] || 0)),
-            total_wins: Math.max(0, profile.total_wins - (userWinCounts[userId] || 0)),
-            total_losses: Math.max(0, profile.total_losses - (userLossCounts[userId] || 0)),
-          })
-          .eq("id", userId);
+      if (data.cleared === 0) {
+        setMsg("No predictions to clear.");
+      } else {
+        setMsg(`Cleared ${data.cleared} predictions across ${data.markets} markets. Coins refunded to ${data.users_refunded} users.`);
       }
+      loadData();
+    } catch {
+      setMsg("Failed to clear bets. Check console for details.");
     }
-
-    // Delete all predictions
-    for (const marketId of marketIds) {
-      await supabase
-        .from("predictions")
-        .delete()
-        .eq("market_id", marketId);
-    }
-
-    // Also delete any parlays for this match
-    await supabase
-      .from("parlays")
-      .delete()
-      .eq("match_id", matchId);
-
-    setMsg(`Cleared ${predictions.length} predictions across ${markets.length} markets. Coins refunded to ${Object.keys(userRefunds).length} users.`);
-    loadData();
   };
 
   if (loading) return <div className="max-w-3xl mx-auto px-4 py-16 text-center text-gray-500">Loading...</div>;
