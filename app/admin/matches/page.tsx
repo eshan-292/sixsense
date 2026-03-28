@@ -184,6 +184,115 @@ export default function ManageMatchesPage() {
           { label: `${match.team_b_short} player`, odds: 2 },
         ],
       },
+      // ── Event-based markets ──
+      {
+        name: "First Ball Six",
+        question: `Will there be a six on the first ball of the match?`,
+        tier: "hard" as MarketTier,
+        options: [
+          { label: "Yes, Six!", odds: 8 },
+          { label: "No", odds: 1.1 },
+        ],
+      },
+      {
+        name: "Century Scored",
+        question: `Will any batter score a century (100+)?`,
+        tier: "hard" as MarketTier,
+        options: [
+          { label: "Yes, Century!", odds: 5 },
+          { label: "No Century", odds: 1.15 },
+        ],
+      },
+      {
+        name: "Fifty in Powerplay",
+        question: `Will any batter score 50+ in the powerplay (first 6 overs)?`,
+        tier: "hard" as MarketTier,
+        options: [
+          { label: "Yes", odds: 4 },
+          { label: "No", odds: 1.2 },
+        ],
+      },
+      {
+        name: "Powerplay Score",
+        question: `How many runs in the first innings powerplay (6 overs)?`,
+        tier: "medium" as MarketTier,
+        options: [
+          { label: "Under 40", odds: 3.5 },
+          { label: "40-55", odds: 2.2 },
+          { label: "56-70", odds: 2.5 },
+          { label: "71+", odds: 3 },
+        ],
+      },
+      {
+        name: "Most Sixes",
+        question: `Which team will hit more sixes in the match?`,
+        tier: "medium" as MarketTier,
+        options: [
+          { label: match.team_a_short, odds: 2 },
+          { label: match.team_b_short, odds: 2 },
+          { label: "Equal", odds: 6 },
+        ],
+      },
+      {
+        name: "Wicket in First Over",
+        question: `Will a wicket fall in the first over?`,
+        tier: "hard" as MarketTier,
+        options: [
+          { label: "Yes", odds: 4 },
+          { label: "No", odds: 1.2 },
+        ],
+      },
+      {
+        name: "Highest Individual Score",
+        question: `What will be the highest individual score in the match?`,
+        tier: "medium" as MarketTier,
+        options: [
+          { label: "Under 50", odds: 2.5 },
+          { label: "50-74", odds: 2.2 },
+          { label: "75-99", odds: 3 },
+          { label: "100+", odds: 5 },
+        ],
+      },
+      {
+        name: "Total Sixes",
+        question: `How many sixes will be hit in the entire match?`,
+        tier: "medium" as MarketTier,
+        options: [
+          { label: "Under 10", odds: 2.5 },
+          { label: "10-15", odds: 2 },
+          { label: "16-20", odds: 2.5 },
+          { label: "21+", odds: 3.5 },
+        ],
+      },
+      {
+        name: "Super Over",
+        question: `Will the match go to a Super Over?`,
+        tier: "hard" as MarketTier,
+        options: [
+          { label: "Yes, Super Over!", odds: 15 },
+          { label: "No", odds: 1.05 },
+        ],
+      },
+      {
+        name: "Win Margin",
+        question: `How will the winning team win?`,
+        tier: "medium" as MarketTier,
+        options: [
+          { label: "By 1-20 runs", odds: 3 },
+          { label: "By 21-40 runs", odds: 2.5 },
+          { label: "By 40+ runs", odds: 4 },
+          { label: "By wickets (chasing)", odds: 2 },
+        ],
+      },
+      {
+        name: "Toss Winner",
+        question: `Who will win the toss?`,
+        tier: "easy" as MarketTier,
+        options: [
+          { label: match.team_a_short, odds: 2 },
+          { label: match.team_b_short, odds: 2 },
+        ],
+      },
     ];
   };
 
