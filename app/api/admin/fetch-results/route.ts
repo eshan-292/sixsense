@@ -32,7 +32,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+
+  const { data: profile } = await admin
     .from("profiles")
     .select("is_admin")
     .eq("id", user.id)
@@ -46,8 +48,6 @@ export async function POST(request: Request) {
   if (!match_id) {
     return NextResponse.json({ error: "Missing match_id" }, { status: 400 });
   }
-
-  const admin = createAdminClient();
 
   // Get our match
   const { data: match } = await admin

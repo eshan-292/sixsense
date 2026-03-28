@@ -27,8 +27,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
 
-  // Check admin
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+
+  // Check admin using admin client to bypass RLS
+  const { data: profile } = await admin
     .from("profiles")
     .select("is_admin")
     .eq("id", user.id)
@@ -43,8 +45,6 @@ export async function POST(request: Request) {
   if (!market_id || !correct_option_id) {
     return NextResponse.json({ error: "Missing fields" }, { status: 400 });
   }
-
-  const admin = createAdminClient();
 
   // Get market
   const { data: market } = await admin
