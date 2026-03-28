@@ -124,6 +124,17 @@ export default function MatchCard({
           )}
         </div>
 
+        {match.status === "completed" && match.result && (
+          <div className="mt-2 text-center">
+            <span className="text-xs text-green-400 font-medium">
+              🏆 {match.result === "team_a_win"
+                ? `${match.team_a_short} Won`
+                : match.result === "team_b_win"
+                  ? `${match.team_b_short} Won`
+                  : "No Result"}
+            </span>
+          </div>
+        )}
         {match.status !== "completed" && (
           <div className="mt-2 text-center">
             <span className="text-xs text-indigo-400 font-medium group-hover:text-indigo-300 transition-colors">

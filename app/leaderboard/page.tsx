@@ -1,8 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatCoins } from "@/lib/utils";
+import Link from "next/link";
 import LeaderboardTable from "./LeaderboardTable";
 import type { Metadata } from "next";
 import type { LeaderboardEntry } from "@/lib/types";
+
+const medals = ["🥇", "🥈", "🥉"];
 
 export const dynamic = "force-dynamic";
 
@@ -120,7 +123,7 @@ export default async function LeaderboardPage() {
                       : "border-amber-600 shadow-amber-500/20";
 
                 return (
-                  <div key={leader.id} className="flex flex-col items-center">
+                  <Link key={leader.id} href={`/user/${leader.id}`} className="flex flex-col items-center hover:opacity-80 transition-opacity">
                     <div className="text-2xl mb-1">{medals[idx]}</div>
                     {leader.avatar_url ? (
                       <img
@@ -144,7 +147,7 @@ export default async function LeaderboardPage() {
                     <div
                       className={`${podiumH} w-20 bg-gradient-to-t from-indigo-600/20 to-transparent rounded-t-lg mt-2 border-t-2 border-indigo-500/50`}
                     />
-                  </div>
+                  </Link>
                 );
               })}
             </div>

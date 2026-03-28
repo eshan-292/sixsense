@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { formatCoins } from "@/lib/utils";
+import Link from "next/link";
 import type { LeaderboardEntry } from "@/lib/types";
 
 const medals = ["🥇", "🥈", "🥉"];
@@ -81,7 +82,7 @@ export default function LeaderboardTable({
                     )}
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex items-center gap-2.5">
+                    <Link href={`/user/${leader.id}`} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
                       {leader.avatar_url ? (
                         <img
                           src={leader.avatar_url}
@@ -101,7 +102,7 @@ export default function LeaderboardTable({
                           </span>
                         )}
                       </span>
-                    </div>
+                    </Link>
                   </td>
                   <td className="py-3 px-4 text-right">
                     <span className="text-sm font-semibold text-yellow-400">
