@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Leaderboard",
   description:
-    "See who's leading the SixSense IPL prediction market. Top predictors ranked by SSR and coins.",
+    "See who's leading the SixSense IPL prediction market. Top predictors ranked by Points and coins.",
 };
 
 export default async function LeaderboardPage() {
@@ -110,7 +110,7 @@ export default async function LeaderboardPage() {
                     #{userRank}
                   </p>
                   <p className="text-xs text-purple-400 font-semibold">
-                    {userProfile.ssr ?? 0} SSR
+                    {userProfile.ssr ?? 0} Pts
                   </p>
                 </div>
               </div>
@@ -131,7 +131,7 @@ export default async function LeaderboardPage() {
                   <p className="text-sm font-bold text-purple-400">
                     {userProfile.ssr ?? 0}
                   </p>
-                  <p className="text-[11px] text-gray-600">SSR</p>
+                  <p className="text-[11px] text-gray-600">Points</p>
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-orange-400">
@@ -156,7 +156,7 @@ export default async function LeaderboardPage() {
 
         {userRank && userRank > 50 && (
           <p className="text-center text-sm text-gray-400 mt-4">
-            Your SSR rank:{" "}
+            Your rank:{" "}
             <span className="text-indigo-400 font-semibold">#{userRank}</span>
           </p>
         )}

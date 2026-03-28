@@ -18,7 +18,10 @@ export default async function SchedulePage() {
     .select("*")
     .order("match_date", { ascending: true });
 
-  const allMatches = matches || [];
+  // Filter out test matches
+  const allMatches = (matches || []).filter(
+    (m) => !m.team_a_short.startsWith("TT") && !m.team_b_short.startsWith("TT")
+  );
   const totalMatches = allMatches.length;
   const completedMatches = allMatches.filter((m) => m.status === "completed").length;
   const liveMatches = allMatches.filter((m) => m.status === "live").length;

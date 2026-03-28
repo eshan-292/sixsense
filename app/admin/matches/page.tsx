@@ -445,7 +445,7 @@ export default function ManageMatchesPage() {
               >
                 <div>{TIER_LABELS[tier].name}</div>
                 <div className="text-[11px] opacity-70 mt-0.5">{TIER_LABELS[tier].range}</div>
-                <div className="text-[11px] opacity-70">+{SSR_REWARDS[tier]} SSR</div>
+                <div className="text-[11px] opacity-70">+{SSR_REWARDS[tier]} Pts</div>
               </button>
             ))}
           </div>

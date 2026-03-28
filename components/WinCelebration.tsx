@@ -162,10 +162,10 @@ export default function WinCelebration({
           {ssrEarned > 0 && (
             <div className="flex items-center justify-center gap-2 rounded-lg bg-purple-500/10 border border-purple-500/20 p-2.5 mb-4">
               <span className="text-purple-400 text-sm font-bold">
-                +{ssrEarned} SSR Earned
+                +{ssrEarned} Points Earned
               </span>
               <span className="text-[11px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">
-                SixSense Rating
+                Prediction Points
               </span>
             </div>
           )}

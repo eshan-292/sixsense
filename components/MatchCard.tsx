@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { getTeamColor, timeUntil } from "@/lib/utils";
+import { timeUntil } from "@/lib/utils";
+import TeamBadge from "@/components/TeamBadge";
 import type { Match } from "@/lib/types";
 import { useEffect, useState } from "react";
 
@@ -64,11 +65,7 @@ export default function MatchCard({ match }: { match: Match }) {
         <div className="flex items-center">
           {/* Team A */}
           <div className="flex items-center gap-2.5 flex-1 min-w-0">
-            <div
-              className={`w-10 h-10 rounded-full ${getTeamColor(match.team_a_short)} flex items-center justify-center text-[11px] font-bold team-badge shrink-0`}
-            >
-              {match.team_a_short}
-            </div>
+            <TeamBadge shortName={match.team_a_short} size="md" />
             <span className="text-sm font-semibold text-white truncate">
               {match.team_a_short}
             </span>
@@ -82,11 +79,7 @@ export default function MatchCard({ match }: { match: Match }) {
             <span className="text-sm font-semibold text-white truncate text-right">
               {match.team_b_short}
             </span>
-            <div
-              className={`w-10 h-10 rounded-full ${getTeamColor(match.team_b_short)} flex items-center justify-center text-[11px] font-bold team-badge shrink-0`}
-            >
-              {match.team_b_short}
-            </div>
+            <TeamBadge shortName={match.team_b_short} size="md" />
           </div>
         </div>
       </div>

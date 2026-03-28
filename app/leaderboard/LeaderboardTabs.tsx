@@ -50,13 +50,13 @@ export default function LeaderboardTabs({
   const getPodiumValue = (leader: LeaderboardEntry) => {
     switch (activeTab) {
       case "ssr":
-        return `${leader.ssr ?? 0} SSR`;
+        return `${leader.ssr ?? 0} Pts`;
       case "coins":
         return `${(leader.coins ?? 0).toLocaleString("en-IN")} coins`;
       case "streak":
         return `${leader.current_streak ?? 0} streak`;
       case "today":
-        return `${leader.ssr_today ?? 0} SSR today`;
+        return `${leader.ssr_today ?? 0} Pts today`;
     }
   };
 

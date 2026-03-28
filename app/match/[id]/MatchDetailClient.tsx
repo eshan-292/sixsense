@@ -6,6 +6,7 @@ import { getTeamColor, formatCoins } from "@/lib/utils";
 import MarketCard from "@/components/MarketCard";
 import LiveScoreWidget from "@/components/LiveScoreWidget";
 import WinCelebration from "@/components/WinCelebration";
+import TeamBadge from "@/components/TeamBadge";
 import Link from "next/link";
 import type { Match, Market, MarketTier, Prediction, Profile } from "@/lib/types";
 
@@ -240,9 +241,7 @@ export default function MatchDetailClient({
         {/* Teams */}
         <div className="flex items-center justify-between">
           <div className="flex flex-col items-center gap-2 flex-1">
-            <div className={`w-14 h-14 rounded-full ${getTeamColor(match.team_a_short)} flex items-center justify-center text-xs font-bold team-badge`}>
-              {match.team_a_short}
-            </div>
+            <TeamBadge shortName={match.team_a_short} size="lg" />
             <span className="text-sm font-semibold text-white">{match.team_a_short}</span>
           </div>
 
@@ -258,9 +257,7 @@ export default function MatchDetailClient({
           </div>
 
           <div className="flex flex-col items-center gap-2 flex-1">
-            <div className={`w-14 h-14 rounded-full ${getTeamColor(match.team_b_short)} flex items-center justify-center text-xs font-bold team-badge`}>
-              {match.team_b_short}
-            </div>
+            <TeamBadge shortName={match.team_b_short} size="lg" />
             <span className="text-sm font-semibold text-white">{match.team_b_short}</span>
           </div>
         </div>
@@ -283,23 +280,27 @@ export default function MatchDetailClient({
         </div>
       )}
 
-      {/* Parlay toggle */}
-      {profile && bettingOpen && match.status !== "completed" && markets.length > 1 && (
+      {/* Section header + Parlay toggle */}
+      {sortedMarkets.length > 0 && (
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-semibold text-[#8899a6] uppercase tracking-wider">
             Predictions
           </h2>
-          <button
-            onClick={() => {
-              setParlayMode(!parlayMode);
-              if (parlayMode) { setParlaySelections({}); setParlayError(""); }
-            }}
-            className={`text-[11px] font-medium px-3 py-1 rounded-md transition-colors ${
-              parlayMode ? "bg-[#e63946]/15 text-[#e63946]" : "text-[#8899a6] hover:text-white"
-            }`}
-          >
-            {parlayMode ? "Cancel Parlay" : "⚡ Build Parlay"}
-          </button>
+          {profile && bettingOpen && match.status !== "completed" && markets.length > 1 && (
+            <button
+              onClick={() => {
+                setParlayMode(!parlayMode);
+                if (parlayMode) { setParlaySelections({}); setParlayError(""); }
+              }}
+              className={`text-[11px] font-medium px-3 py-1.5 rounded-lg transition-colors ${
+                parlayMode
+                  ? "bg-[#e63946] text-white"
+                  : "bg-[#1a2332] text-[#8899a6] border border-[#243040] hover:text-white"
+              }`}
+            >
+              {parlayMode ? "✕ Cancel" : "⚡ Parlay"}
+            </button>
+          )}
         </div>
       )}
 

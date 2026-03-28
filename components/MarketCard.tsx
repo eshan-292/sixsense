@@ -262,7 +262,7 @@ export default function MarketCard({
       {!parlayMode && !isLocked && !hasPredicted && selectedOption && userProfile && (
         <div className="mt-4 pt-4 border-t border-[#243040]">
           {/* Preset buttons */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-2">
             {WAGER_PRESETS.filter(v => v <= maxWager).map((preset) => (
               <button
                 key={preset}
@@ -286,6 +286,24 @@ export default function MarketCard({
             >
               Max
             </button>
+          </div>
+
+          {/* Slider */}
+          <div className="mb-3">
+            <input
+              type="range"
+              min={100}
+              max={maxWager}
+              step={50}
+              value={wager}
+              onChange={(e) => setWager(Number(e.target.value))}
+              className="w-full"
+            />
+            <div className="flex items-center justify-between text-[11px] text-[#556677] mt-1">
+              <span>100</span>
+              <span className="text-sm font-bold text-[#f5a623]">{wager} coins</span>
+              <span>{maxWager}</span>
+            </div>
           </div>
 
           {/* Hero potential win */}

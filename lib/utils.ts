@@ -36,6 +36,23 @@ export function getTeamColor(shortName: string): string {
   return colors[shortName] || "bg-gray-500 text-white";
 }
 
+export function getTeamLogo(shortName: string): string | null {
+  // IPL team logo URLs from official IPL CDN
+  const logos: Record<string, string> = {
+    CSK: "https://scores.iplt20.com/ipl/teamlogos/CSK.png",
+    MI: "https://scores.iplt20.com/ipl/teamlogos/MI.png",
+    RCB: "https://scores.iplt20.com/ipl/teamlogos/RCB.png",
+    KKR: "https://scores.iplt20.com/ipl/teamlogos/KKR.png",
+    DC: "https://scores.iplt20.com/ipl/teamlogos/DC.png",
+    SRH: "https://scores.iplt20.com/ipl/teamlogos/SRH.png",
+    RR: "https://scores.iplt20.com/ipl/teamlogos/RR.png",
+    PBKS: "https://scores.iplt20.com/ipl/teamlogos/PBKS.png",
+    GT: "https://scores.iplt20.com/ipl/teamlogos/GT.png",
+    LSG: "https://scores.iplt20.com/ipl/teamlogos/LSG.png",
+  };
+  return logos[shortName] || null;
+}
+
 export function getTeamBgGradient(shortName: string): string {
   const gradients: Record<string, string> = {
     CSK: "from-yellow-400/20 to-yellow-600/20",

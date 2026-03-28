@@ -29,7 +29,7 @@ export default function LeaderboardTable({
       case "ssr":
         return (
           <span className="text-sm font-semibold text-purple-400">
-            {leader.ssr ?? 0} SSR
+            {leader.ssr ?? 0} Pts
           </span>
         );
       case "coins":
@@ -47,7 +47,7 @@ export default function LeaderboardTable({
       case "today":
         return (
           <span className="text-sm font-semibold text-green-400">
-            {leader.ssr_today ?? 0} SSR
+            {leader.ssr_today ?? 0} Pts
           </span>
         );
     }
@@ -55,7 +55,7 @@ export default function LeaderboardTable({
 
   const getMetricLabel = () => {
     switch (primaryMetric) {
-      case "ssr": return "SSR";
+      case "ssr": return "Points";
       case "coins": return "Coins";
       case "streak": return "Streak";
       case "today": return "Today";
@@ -94,7 +94,7 @@ export default function LeaderboardTable({
                 Record
               </th>
               <th className="text-right text-[11px] text-gray-500 font-medium py-3 px-4 hidden sm:table-cell uppercase tracking-wider">
-                {primaryMetric === "ssr" ? "Coins" : "SSR"}
+                {primaryMetric === "ssr" ? "Coins" : "Points"}
               </th>
             </tr>
           </thead>

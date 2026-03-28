@@ -55,31 +55,31 @@ const SECTIONS = [
     ],
   },
   {
-    title: "Market Tiers & SSR",
+    title: "Market Tiers & Points",
     items: [
       {
         icon: "\u{1F7E2}",
         title: "Safe Picks \u2014 Easy questions",
         description:
-          "Simple markets like \u201CWho will win?\u201D. Lower risk. Earn +10 SSR for each correct prediction.",
+          "Simple markets like \u201CWho will win?\u201D. Lower risk. Earn +10 Points for each correct prediction.",
       },
       {
         icon: "\u{1F7E1}",
         title: "Smart Calls \u2014 Medium difficulty",
         description:
-          "Markets like \u201CWill total runs exceed 350?\u201D. Moderate risk. Earn +25 SSR for each correct prediction.",
+          "Markets like \u201CWill total runs exceed 350?\u201D. Moderate risk. Earn +25 Points for each correct prediction.",
       },
       {
         icon: "\u{1F534}",
         title: "Bold Predictions \u2014 Hard questions",
         description:
-          "Markets like \u201CWho will be top scorer?\u201D. High risk, high reward. Earn +50 SSR for each correct prediction.",
+          "Markets like \u201CWho will be top scorer?\u201D. High risk, high reward. Earn +50 Points for each correct prediction.",
       },
       {
         icon: "\u2B50",
-        title: "SixSense Rating (SSR)",
+        title: "Points",
         description:
-          "SSR measures prediction skill, separate from coins. Correct predictions earn SSR based on tier. Wrong predictions cost \u22123 SSR. Build a streak for multiplied SSR: 3+ streak = 1.5x, 5+ streak = 2x.",
+          "Points measure prediction skill, separate from coins. Correct predictions earn Points based on tier. Wrong predictions cost \u22123 Points. Build a streak for multiplied Points: 3+ streak = 1.5x, 5+ streak = 2x.",
       },
     ],
   },
@@ -119,7 +119,7 @@ const SECTIONS = [
         icon: "\u{1F3C6}",
         title: "Leaderboard",
         description:
-          "Compete across 4 leaderboards: Top Predictors (SSR), Richest (Coins), Hot Streak, and Today\u2019s Best. Climb the ranks throughout the IPL season.",
+          "Compete across 4 leaderboards: Top Predictors, Richest (Coins), Hot Streak, and Today\u2019s Best. Climb the ranks throughout the IPL season.",
       },
     ],
   },
@@ -140,7 +140,7 @@ const STRATEGIES = [
   },
   {
     icon: "\u{1F4AA}",
-    text: "Build streaks! Correct predictions in a row multiply your SSR earnings. A 5-streak doubles your SSR per correct pick.",
+    text: "Build streaks! Correct predictions in a row multiply your Points earnings. A 5-streak doubles your Points per correct pick.",
   },
   {
     icon: "\u26A1",
@@ -237,7 +237,7 @@ export default function HowToPlayPage() {
             </div>
             <div className="bg-gray-800/30 rounded-lg p-3">
               <p className="text-gray-500 mb-1">Wrong Prediction</p>
-              <p className="text-red-400 font-semibold">-3 SSR</p>
+              <p className="text-red-400 font-semibold">-3 Pts</p>
             </div>
           </div>
         </div>
