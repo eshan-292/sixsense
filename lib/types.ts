@@ -60,5 +60,7 @@ export interface LeaderboardEntry {
   coins: number;
   total_predictions: number;
   total_wins: number;
+  total_losses: number;
   win_streak: number;
+  best_streak: number;
 }
