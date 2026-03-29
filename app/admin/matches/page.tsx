@@ -6,18 +6,18 @@ import type { Match, Market, MarketOption, MarketTier } from "@/lib/types";
 
 const SSR_REWARDS: Record<MarketTier, number> = { easy: 10, medium: 25, hard: 50 };
 
-// Top 4 batsmen per IPL team (2026 squads)
+// Top 4 batsmen per IPL team (2026 squads — verified post-auction)
 const TOP_BATSMEN: Record<string, string[]> = {
-  CSK: ["Ruturaj Gaikwad", "Devon Conway", "Shivam Dube", "Rachin Ravindra"],
-  MI: ["Rohit Sharma", "Suryakumar Yadav", "Tilak Varma", "Ishan Kishan"],
-  RCB: ["Virat Kohli", "Rajat Patidar", "Phil Salt", "Liam Livingstone"],
-  KKR: ["Venkatesh Iyer", "Angkrish Raghuvanshi", "Quinton de Kock", "Ajinkya Rahane"],
-  DC: ["KL Rahul", "Jake Fraser-McGurk", "Abishek Porel", "Tristan Stubbs"],
-  SRH: ["Travis Head", "Heinrich Klaasen", "Abhishek Sharma", "Ishan Kishan"],
-  RR: ["Sanju Samson", "Yashasvi Jaiswal", "Shimron Hetmyer", "Riyan Parag"],
-  PBKS: ["Shreyas Iyer", "Jonny Bairstow", "Prabhsimran Singh", "Marcus Stoinis"],
-  GT: ["Shubman Gill", "Sai Sudharsan", "Jos Buttler", "David Miller"],
-  LSG: ["Rishabh Pant", "David Miller", "Nicholas Pooran", "Aiden Markram"],
+  CSK: ["Ruturaj Gaikwad", "Sanju Samson", "Dewald Brevis", "Shivam Dube"],
+  MI: ["Rohit Sharma", "Suryakumar Yadav", "Tilak Varma", "Robin Minz"],
+  RCB: ["Virat Kohli", "Phil Salt", "Devdutt Padikkal", "Rajat Patidar"],
+  KKR: ["Ajinkya Rahane", "Angkrish Raghuvanshi", "Rinku Singh", "Manish Pandey"],
+  DC: ["KL Rahul", "Karun Nair", "David Miller", "Prithvi Shaw"],
+  SRH: ["Ishan Kishan", "Travis Head", "Heinrich Klaasen", "Abhishek Sharma"],
+  RR: ["Yashasvi Jaiswal", "Riyan Parag", "Shimron Hetmyer", "Vaibhav Suryavanshi"],
+  PBKS: ["Shreyas Iyer", "Prabhsimran Singh", "Nehal Wadhera", "Harnoor Pannu"],
+  GT: ["Shubman Gill", "Jos Buttler", "Glenn Phillips", "Sai Sudharsan"],
+  LSG: ["Rishabh Pant", "Aiden Markram", "Nicholas Pooran", "Josh Inglis"],
 };
 const TIER_LABELS: Record<MarketTier, { name: string; range: string }> = {
   easy: { name: "Safe Pick", range: "Low risk, small reward" },
