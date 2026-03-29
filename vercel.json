@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/auto-settle",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 * * * *"
     }
   ]
 }
