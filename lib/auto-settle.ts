@@ -108,13 +108,32 @@ function parseMatchPage(html: string): Partial<ParsedResult> {
     result.statusText = `${result.winnerFull} ${result.wonByText}`;
   }
 
-  // Extract scores from og:title: "TEAM1 201/9 (20) vs TEAM2 203/4 (15.4)"
+  // Extract scores from og:title and description
+  // Pattern: "MI 224/4 (19.1) vs KKR\n201/9" or "TEAM1 201/9 (20) vs TEAM2 203/4 (15.4)"
+  // Search more broadly — the second score might be on a new line or after "vs"
   const scorePattern = /([A-Z]{2,5})\s+(\d+)(?:\/(\d+))?\s*\((\d+\.?\d*)\)/gi;
-  const scores: { runs: number }[] = [];
+  const scores: { team: string; runs: number }[] = [];
+  // Search first 10000 chars to catch both innings
   let sm;
-  while ((sm = scorePattern.exec(html.substring(0, 5000))) !== null) {
-    scores.push({ runs: parseInt(sm[2]) });
+  while ((sm = scorePattern.exec(html.substring(0, 10000))) !== null) {
+    const team = sm[1];
+    const runs = parseInt(sm[2]);
+    // Avoid duplicate teams (Cricbuzz repeats for mobile/desktop)
+    if (!scores.find(s => s.team === team)) {
+      scores.push({ team, runs });
+    }
     if (scores.length >= 2) break;
+  }
+
+  // Also try to find a second score that might be without team name
+  // Pattern: "\n201/9" right after "vs KKR"
+  if (scores.length === 1) {
+    const secondScoreMatch = html.substring(0, 10000).match(
+      /vs\s+[A-Z]{2,5}\s*\n?\s*(\d{2,3})\/(\d{1,2})/i
+    );
+    if (secondScoreMatch) {
+      scores.push({ team: "?", runs: parseInt(secondScoreMatch[1]) });
+    }
   }
 
   if (scores.length >= 1) result.firstInningsScore = scores[0].runs;
@@ -168,83 +187,108 @@ function parseScorecardPage(html: string): {
   powerplayScore1: number | null;
   powerplayScore2: number | null;
   firstWicketOver: number | null;
+  topScorerRuns: number;
+  topScorerName: string | null;
 } {
-  // ── Extract sixes per batter ──
-  // Pattern: font-bold>RUNS</div><div>BALLS</div><div>FOURS</div><div>SIXES</div>
+  // Cricbuzz duplicates the scorecard for mobile/desktop views.
+  // Only use the FIRST HALF of the HTML to avoid double-counting.
+  const halfLen = Math.floor(html.length / 2);
+  const firstHalf = html.substring(0, halfLen);
+
+  // ── Extract batting stats: RUNS, BALLS, FOURS, SIXES ──
   const battingPattern =
     /font-bold[^>]*>(\d+)<\/div><div[^>]*>(\d+)<\/div><div[^>]*>(\d+)<\/div><div[^>]*>(\d+)<\/div>/g;
   const allBatterStats: { runs: number; balls: number; fours: number; sixes: number }[] = [];
   let bm;
-  while ((bm = battingPattern.exec(html)) !== null) {
+  while ((bm = battingPattern.exec(firstHalf)) !== null) {
     const runs = parseInt(bm[1]);
     const balls = parseInt(bm[2]);
+    const fours = parseInt(bm[3]);
     const sixes = parseInt(bm[4]);
-    // Filter: valid batting entries have balls > 0 or runs > 0, and sixes <= runs/6
-    if ((balls > 0 || runs > 0) && sixes <= Math.ceil(runs / 6) + 1) {
-      allBatterStats.push({ runs, balls, fours: parseInt(bm[3]), sixes });
+    // Valid batting: balls > 0 or runs > 0, fours+sixes make sense
+    if ((balls > 0 || runs > 0) && sixes <= Math.ceil(runs / 6) + 1 && fours <= runs) {
+      allBatterStats.push({ runs, balls, fours, sixes });
     }
   }
 
-  // Split into innings: the scorecard shows innings in order.
-  // Use a heuristic: find where the runs reset (second innings start).
-  // Actually, just sum all sixes — we'll split by innings using the separate
-  // "Mandatory" powerplay scores which clearly delineate innings.
   const totalSixes = allBatterStats.reduce((sum, b) => sum + b.sixes, 0);
 
-  // ── Extract powerplay scores ──
-  // Pattern: "Mandatory</div><div...>0.1 - 6</div><div...>SCORE</div>"
+  // Find top scorer from scorecard (more reliable than og:title)
+  let topScorerRuns = 0;
+  allBatterStats.forEach((b) => {
+    if (b.runs > topScorerRuns) topScorerRuns = b.runs;
+  });
+
+  // Try to get top scorer NAME from the HTML near the highest score
+  let topScorerName: string | null = null;
+  if (topScorerRuns > 0) {
+    // Look for "PlayerName</div>...font-bold>RUNS" pattern
+    const namePattern = new RegExp(
+      `([A-Z][a-z]+(?: [A-Z][a-z]+)+)[^>]*<\\/div>(?:[^<]*<[^>]*>)*[^<]*font-bold[^>]*>${topScorerRuns}<`,
+      "i"
+    );
+    const nameMatch = firstHalf.match(namePattern);
+    if (nameMatch) topScorerName = nameMatch[1].trim();
+  }
+
+  // ── Powerplay scores ──
   const ppPattern =
     /Mandatory<\/div><div[^>]*>[^<]*<\/div><div[^>]*>(\d+)<\/div>/g;
   const ppScores: number[] = [];
   let pp;
-  while ((pp = ppPattern.exec(html)) !== null) {
+  while ((pp = ppPattern.exec(firstHalf)) !== null) {
     ppScores.push(parseInt(pp[1]));
   }
-  // Deduplicate (Cricbuzz repeats the scorecard data for mobile/desktop views)
-  const uniquePP = [...new Set(ppScores)];
-  const powerplayScore1 = uniquePP.length >= 1 ? uniquePP[0] : null;
-  const powerplayScore2 = uniquePP.length >= 2 ? uniquePP[1] : null;
+  const powerplayScore1 = ppScores.length >= 1 ? ppScores[0] : null;
+  const powerplayScore2 = ppScores.length >= 2 ? ppScores[1] : null;
 
-  // ── Extract fall of wickets overs ──
-  // After the FOW section, over numbers appear as floating point values.
-  // They appear in the HTML between FOW and the next section.
-  // Pattern: consecutive floats like "2.1</div>...2.6</div>...4.2</div>"
-  // These are the overs at which wickets fell.
+  // ── Fall of wickets ──
   let firstWicketOver: number | null = null;
-
-  // Find the FOW section in the first innings
-  const fowIndex = html.indexOf("Fall of Wickets");
+  const fowIndex = firstHalf.indexOf("Fall of Wickets");
   if (fowIndex > -1) {
-    // Look for over numbers in the next 2000 chars
-    const fowSection = html.substring(fowIndex, fowIndex + 2000);
-    // Over numbers are small floats like 0.4, 2.1, 4.2 etc.
+    const fowSection = firstHalf.substring(fowIndex, fowIndex + 2000);
     const overPattern = />\s*(\d{1,2}\.\d)\s*<\/div>/g;
     let om;
     const overs: number[] = [];
     while ((om = overPattern.exec(fowSection)) !== null) {
       const ov = parseFloat(om[1]);
-      // Valid overs: 0.1 to 20.0
-      if (ov >= 0.1 && ov <= 20.0) {
-        overs.push(ov);
-      }
+      if (ov >= 0.1 && ov <= 20.0) overs.push(ov);
     }
-    if (overs.length > 0) {
-      firstWicketOver = overs[0];
-    }
+    if (overs.length > 0) firstWicketOver = overs[0];
   }
 
   // ── Split sixes by innings ──
-  // If we have exactly 2 powerplay scores, we know the boundary.
-  // Heuristic: first N batters are innings 1 (count batters until sixes sum matches reasonable)
-  // Simple approach: split batters list in half (roughly)
-  let innings1Sixes = 0;
+  // Use powerplay count as marker: if we have 2 PP scores, the batting stats
+  // belong to 2 innings. Find the boundary by looking for a "reset" in the
+  // batting order (usually after extras/total row which has runs but 0 balls and 0 fours).
+  // Better heuristic: first ~6-11 batters are innings 1, rest are innings 2.
+  // Count batters with balls > 0 until we see a gap.
+  let innings1Sixes = totalSixes;
   let innings2Sixes = 0;
-  if (allBatterStats.length > 0) {
-    // Find the split point: look for a batter with distinctly low runs after a sequence
-    // Simpler: just assign first ~11 batters to innings 1, rest to innings 2
-    const midpoint = Math.ceil(allBatterStats.length / 2);
-    innings1Sixes = allBatterStats.slice(0, midpoint).reduce((s, b) => s + b.sixes, 0);
-    innings2Sixes = allBatterStats.slice(midpoint).reduce((s, b) => s + b.sixes, 0);
+
+  if (ppScores.length >= 2 && allBatterStats.length > 2) {
+    // Find the split: look for where cumulative runs exceed first innings total
+    // We know powerplay scores which helps validate
+    // Simple: if we have N batters, first innings typically has 5-11 batters
+    // Look for a natural break where runs are very low after a sequence of higher scores
+    let cumulativeRuns = 0;
+    let splitAt = allBatterStats.length;
+    for (let i = 0; i < allBatterStats.length; i++) {
+      cumulativeRuns += allBatterStats[i].runs;
+      // Check if next batter starts a new innings (runs reset)
+      // Heuristic: if we've accumulated > 120 runs and the next few batters
+      // start a new sequence, that's the innings break
+      if (i < allBatterStats.length - 2 && cumulativeRuns > 100) {
+        // Check if the remaining batters' total is plausible as a second innings
+        const remainingRuns = allBatterStats.slice(i + 1).reduce((s, b) => s + b.runs, 0);
+        if (remainingRuns > 80) {
+          splitAt = i + 1;
+          break;
+        }
+      }
+    }
+    innings1Sixes = allBatterStats.slice(0, splitAt).reduce((s, b) => s + b.sixes, 0);
+    innings2Sixes = allBatterStats.slice(splitAt).reduce((s, b) => s + b.sixes, 0);
   }
 
   return {
@@ -254,6 +298,8 @@ function parseScorecardPage(html: string): {
     powerplayScore1,
     powerplayScore2,
     firstWicketOver,
+    topScorerRuns,
+    topScorerName,
   };
 }
 
@@ -297,11 +343,17 @@ async function fetchCricbuzzResult(
     detailed.teamBSixes = sc.innings2Sixes;
     detailed.firstInningsPowerplayScore = sc.powerplayScore1;
     detailed.firstWicketOver = sc.firstWicketOver;
-    // Approximate: if powerplay score is high, someone likely scored 50+ in PP
-    // (not perfect but best we can do without ball-by-ball)
     detailed.highestPowerplayIndividual = sc.powerplayScore1
-      ? Math.min(sc.powerplayScore1, sc.powerplayScore1 * 0.7) // rough heuristic
+      ? Math.min(sc.powerplayScore1, sc.powerplayScore1 * 0.7)
       : null;
+
+    // Use scorecard data for highest score and top scorer (more reliable than og:title)
+    if (sc.topScorerRuns > 0) {
+      basic.highestScore = sc.topScorerRuns;
+    }
+    if (sc.topScorerName) {
+      detailed.topScorerName = sc.topScorerName;
+    }
   }
 
   return {
@@ -429,7 +481,7 @@ function resolveMarkets(
     else if (q.includes("winning team win") || q.includes("how will")) {
       if (r.wonByText) {
         const wbt = r.wonByText.toLowerCase();
-        if (wbt.includes("wicket")) {
+        if (wbt.includes("wicket") || wbt.includes("wkt")) {
           opt = market.options.find((o) => o.label.toLowerCase().includes("wicket"));
         } else {
           const margin = parseInt(wbt.match(/(\d+)/)?.[1] || "0");
