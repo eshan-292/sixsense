@@ -62,21 +62,30 @@ export default function MatchDetailClient({
       }
     }
 
+    // Single query for ALL predictions across ALL markets (replaces N+1 pattern)
     const counts: Record<string, Record<string, number>> = {};
     const pools: Record<string, Record<string, number>> = {};
-    for (const market of markets) {
+    const marketIds = markets.map((m) => m.id);
+
+    if (marketIds.length > 0) {
       const { data: allPreds } = await supabase
         .from("predictions")
-        .select("selected_option_id, coins_wagered")
-        .eq("market_id", market.id);
+        .select("market_id, selected_option_id, coins_wagered")
+        .in("market_id", marketIds);
 
-      counts[market.id] = {};
-      pools[market.id] = {};
+      // Initialize all markets
+      for (const mId of marketIds) {
+        counts[mId] = {};
+        pools[mId] = {};
+      }
+
+      // Aggregate in one pass
       allPreds?.forEach((p) => {
-        counts[market.id][p.selected_option_id] = (counts[market.id][p.selected_option_id] || 0) + 1;
-        pools[market.id][p.selected_option_id] = (pools[market.id][p.selected_option_id] || 0) + p.coins_wagered;
+        counts[p.market_id][p.selected_option_id] = (counts[p.market_id][p.selected_option_id] || 0) + 1;
+        pools[p.market_id][p.selected_option_id] = (pools[p.market_id][p.selected_option_id] || 0) + p.coins_wagered;
       });
     }
+
     setPredictionCounts(counts);
     setPredictionPools(pools);
   }, [markets]);
