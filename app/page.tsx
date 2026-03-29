@@ -43,15 +43,24 @@ export default async function Home() {
     .lt("match_date", nextWeek.toISOString())
     .order("match_date", { ascending: true });
 
+  // Recent completed matches (last 5)
+  const { data: rawCompletedMatches } = await supabase
+    .from("matches")
+    .select("*")
+    .eq("status", "completed")
+    .order("match_date", { ascending: false })
+    .limit(5);
+
   const todayMatches = filterRealMatches(rawTodayMatches);
   const upcomingMatches = filterRealMatches(rawUpcomingMatches);
+  const completedMatches = filterRealMatches(rawCompletedMatches);
 
   // Find next upcoming match for countdown
   const nextMatch =
     todayMatches.find((m) => new Date(m.match_date).getTime() > Date.now()) ||
     upcomingMatches[0];
 
-  const hasAnyMatch = todayMatches.length > 0 || upcomingMatches.length > 0;
+  const hasAnyMatch = todayMatches.length > 0 || upcomingMatches.length > 0 || completedMatches.length > 0;
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-4">
@@ -108,6 +117,20 @@ export default async function Home() {
             Check back soon for IPL predictions!
           </p>
         </div>
+      )}
+
+      {/* Completed Matches */}
+      {completedMatches.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-xs font-semibold text-[#8899a6] uppercase tracking-wider mb-3">
+            Recent Results
+          </h2>
+          <div className="space-y-3">
+            {completedMatches.map((match: Match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+          </div>
+        </section>
       )}
 
       {/* How to Play */}
