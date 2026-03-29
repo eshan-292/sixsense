@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { formatCoins } from "@/lib/utils";
 import { useToast } from "./Toast";
-import PredictionShareCard from "./PredictionShareCard";
 import type { Market, MarketTier, Prediction, Profile } from "@/lib/types";
 
 const SSR_REWARDS: Record<MarketTier, number> = {
@@ -65,13 +64,6 @@ export default function MarketCard({
   const [wager, setWager] = useState(50);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showShareCard, setShowShareCard] = useState(false);
-  const [shareCardData, setShareCardData] = useState<{
-    selectedOption: string;
-    odds: number;
-    wager: number;
-    potentialWin: number;
-  } | null>(null);
   const { showToast } = useToast();
 
   const isLocked = market.status !== "open";
@@ -139,13 +131,6 @@ export default function MarketCard({
       if (data.safety_net) toastMsg += ` | Balance restored to 2,000`;
       showToast(toastMsg, "success");
 
-      setShareCardData({
-        selectedOption: pickedLabel,
-        odds: lockedOdds,
-        wager,
-        potentialWin: Math.floor(wager * lockedOdds),
-      });
-      setShowShareCard(true);
       onPredictionPlaced();
       setSelectedOption(null);
     } catch (err: unknown) {
@@ -248,20 +233,42 @@ export default function MarketCard({
 
       {/* Existing prediction summary */}
       {hasPredicted && (
-        <div className="mt-3 flex items-center justify-between py-2 px-3 bg-[#151f2b] rounded-lg">
-          <span className="text-xs text-[#8899a6]">
-            You wagered <span className="text-white font-medium">{formatCoins(existingPrediction!.coins_wagered)}</span>
-          </span>
-          {existingPrediction!.coins_won !== null && (
-            existingPrediction!.coins_won > 0 ? (
-              <span className="text-xs font-semibold text-[#2ecc71]">Won +{formatCoins(existingPrediction!.coins_won)}</span>
-            ) : (
-              <span className="text-xs font-semibold text-[#e63946]">Lost</span>
-            )
-          )}
-          {existingPrediction!.coins_won === null && (
-            <span className="text-xs text-blue-400 font-medium">Pending</span>
-          )}
+        <div className="mt-3 py-2.5 px-3 bg-[#151f2b] rounded-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-[#8899a6]">
+              Wagered <span className="text-white font-medium">{formatCoins(existingPrediction!.coins_wagered)}</span>
+              {existingPrediction!.locked_odds && (
+                <span className="text-[#556677]"> at {existingPrediction!.locked_odds.toFixed(2)}x</span>
+              )}
+            </span>
+            <div className="flex items-center gap-2">
+              {existingPrediction!.coins_won !== null && (
+                existingPrediction!.coins_won > 0 ? (
+                  <span className="text-xs font-semibold text-[#2ecc71]">+{formatCoins(existingPrediction!.coins_won)}</span>
+                ) : (
+                  <span className="text-xs font-semibold text-[#e63946]">Lost</span>
+                )
+              )}
+              {existingPrediction!.coins_won === null && (
+                <span className="text-xs text-[#f5a623] font-medium">Pending</span>
+              )}
+              <button
+                onClick={() => {
+                  const pickedOption = market.options.find(o => o.id === existingPrediction!.selected_option_id);
+                  const text = `I predicted "${pickedOption?.label}" on "${market.question}" on SixSense! ${matchUrl || window.location.href}`;
+                  if (navigator.share) {
+                    navigator.share({ text });
+                  } else {
+                    navigator.clipboard.writeText(text);
+                    showToast("Copied to clipboard!", "success");
+                  }
+                }}
+                className="text-[11px] text-[#556677] hover:text-white transition-colors"
+              >
+                Share
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -351,18 +358,6 @@ export default function MarketCard({
         </p>
       )}
 
-      {showShareCard && shareCardData && (
-        <PredictionShareCard
-          matchTeams={matchTeams}
-          question={market.question}
-          selectedOption={shareCardData.selectedOption}
-          odds={shareCardData.odds}
-          wager={shareCardData.wager}
-          potentialWin={shareCardData.potentialWin}
-          matchUrl={matchUrl || (typeof window !== "undefined" ? window.location.href : "")}
-          onClose={() => setShowShareCard(false)}
-        />
-      )}
     </div>
   );
 }
