@@ -152,7 +152,7 @@ export default function LeaderboardTable({
                     </span>
                     <span className="text-gray-600 mx-0.5">/</span>
                     <span className="text-red-400 font-medium">
-                      {(leader.total_predictions ?? 0) - (leader.total_wins ?? 0)}L
+                      {leader.total_losses ?? 0}L
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right text-xs hidden sm:table-cell">

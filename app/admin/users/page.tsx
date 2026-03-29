@@ -9,7 +9,7 @@ import type { Profile } from "@/lib/types";
 export default function AdminUsersPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<Profile[]>([]);
+  const [users, setUsers] = useState<(Profile & { email?: string | null })[]>([]);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<"coins" | "predictions" | "created">("coins");
   const [actionMsg, setActionMsg] = useState("");
@@ -24,12 +24,18 @@ export default function AdminUsersPage() {
     if (!profile?.is_admin) { setLoading(false); return; }
     setIsAdmin(true);
 
-    const orderCol = sortBy === "coins" ? "coins" : sortBy === "predictions" ? "total_predictions" : "created_at";
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .order(orderCol, { ascending: false });
-    setUsers(data || []);
+    // Fetch users with emails from admin API
+    const res = await fetch("/api/admin/users");
+    if (res.ok) {
+      const { users: allUsers } = await res.json();
+      // Sort client-side
+      const orderCol = sortBy === "coins" ? "coins" : sortBy === "predictions" ? "total_predictions" : "created_at";
+      allUsers.sort((a: any, b: any) => {
+        if (orderCol === "created_at") return new Date(b[orderCol]).getTime() - new Date(a[orderCol]).getTime();
+        return (b[orderCol] || 0) - (a[orderCol] || 0);
+      });
+      setUsers(allUsers);
+    }
     setLoading(false);
   };
 
@@ -194,8 +200,11 @@ export default function AdminUsersPage() {
                             <span className="text-[11px] bg-orange-500/10 text-orange-400 px-1 py-0.5 rounded ml-1.5 font-medium">Admin</span>
                           )}
                         </span>
+                        {user.email && (
+                          <span className="text-[11px] text-gray-500 block">{user.email}</span>
+                        )}
                         <span className="text-[11px] text-gray-600">
-                          Joined {new Date(user.created_at).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
+                          Joined {new Date(user.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                         </span>
                       </div>
                     </div>

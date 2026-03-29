@@ -13,6 +13,39 @@ async function checkAdmin(supabase: any) {
   return profile?.is_admin ? user : null;
 }
 
+// GET: Fetch all users with their emails (from auth)
+export async function GET() {
+  const supabase = await createClient();
+  const adminUser = await checkAdmin(supabase);
+  if (!adminUser) {
+    return NextResponse.json({ error: "Not authorized" }, { status: 403 });
+  }
+
+  const admin = createAdminClient();
+
+  // Get auth users (has emails)
+  const { data: authData } = await admin.auth.admin.listUsers();
+  const authUsers = authData?.users || [];
+  const emailMap: Record<string, string> = {};
+  authUsers.forEach((u) => {
+    if (u.email) emailMap[u.id] = u.email;
+  });
+
+  // Get profiles
+  const { data: profiles } = await admin
+    .from("profiles")
+    .select("*")
+    .order("coins", { ascending: false });
+
+  // Merge email into profiles
+  const usersWithEmail = (profiles || []).map((p) => ({
+    ...p,
+    email: emailMap[p.id] || null,
+  }));
+
+  return NextResponse.json({ users: usersWithEmail });
+}
+
 // PATCH: Update user (grant coins, toggle admin, reset stats)
 export async function PATCH(request: Request) {
   const supabase = await createClient();
