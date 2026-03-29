@@ -5,6 +5,20 @@ import { createClient } from "@/lib/supabase/client";
 import type { Match, Market, MarketOption, MarketTier } from "@/lib/types";
 
 const SSR_REWARDS: Record<MarketTier, number> = { easy: 10, medium: 25, hard: 50 };
+
+// Top 4 batsmen per IPL team (2026 squads)
+const TOP_BATSMEN: Record<string, string[]> = {
+  CSK: ["Ruturaj Gaikwad", "Devon Conway", "Shivam Dube", "Rachin Ravindra"],
+  MI: ["Rohit Sharma", "Suryakumar Yadav", "Tilak Varma", "Ishan Kishan"],
+  RCB: ["Virat Kohli", "Rajat Patidar", "Phil Salt", "Liam Livingstone"],
+  KKR: ["Venkatesh Iyer", "Angkrish Raghuvanshi", "Quinton de Kock", "Ajinkya Rahane"],
+  DC: ["KL Rahul", "Jake Fraser-McGurk", "Abishek Porel", "Tristan Stubbs"],
+  SRH: ["Travis Head", "Heinrich Klaasen", "Abhishek Sharma", "Ishan Kishan"],
+  RR: ["Sanju Samson", "Yashasvi Jaiswal", "Shimron Hetmyer", "Riyan Parag"],
+  PBKS: ["Shreyas Iyer", "Jonny Bairstow", "Prabhsimran Singh", "Marcus Stoinis"],
+  GT: ["Shubman Gill", "Sai Sudharsan", "Jos Buttler", "David Miller"],
+  LSG: ["Rishabh Pant", "David Miller", "Nicholas Pooran", "Aiden Markram"],
+};
 const TIER_LABELS: Record<MarketTier, { name: string; range: string }> = {
   easy: { name: "Safe Pick", range: "Low risk, small reward" },
   medium: { name: "Smart Call", range: "Medium risk, good reward" },
@@ -309,6 +323,21 @@ export default function ManageMatchesPage() {
           { label: match.team_a_short, odds: 2 },
           { label: match.team_b_short, odds: 2 },
         ],
+      },
+      // ── Top Scorer market with actual player names ──
+      {
+        name: "Top Scorer",
+        question: `Who will be the top scorer of the match?`,
+        tier: "hard" as MarketTier,
+        options: (() => {
+          const teamAPlayers = TOP_BATSMEN[match.team_a_short] || [`${match.team_a_short} Batter 1`, `${match.team_a_short} Batter 2`];
+          const teamBPlayers = TOP_BATSMEN[match.team_b_short] || [`${match.team_b_short} Batter 1`, `${match.team_b_short} Batter 2`];
+          return [
+            ...teamAPlayers.slice(0, 4).map(p => ({ label: p, odds: 8 })),
+            ...teamBPlayers.slice(0, 4).map(p => ({ label: p, odds: 8 })),
+            { label: "Someone else", odds: 3 },
+          ];
+        })(),
       },
     ];
   };

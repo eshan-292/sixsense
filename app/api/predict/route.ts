@@ -73,7 +73,8 @@ export async function POST(request: Request) {
   }
 
   // Calculate live odds from current prediction pools
-  const BASE_LIQUIDITY = 500;
+  // Seed each option proportionally to its initial odds (implied probability)
+  const TOTAL_SEED = 1000;
   const { data: allMarketPreds } = await supabase
     .from("predictions")
     .select("selected_option_id, coins_wagered")
@@ -84,13 +85,21 @@ export async function POST(request: Request) {
     pools[p.selected_option_id] = (pools[p.selected_option_id] || 0) + p.coins_wagered;
   });
 
-  // Calculate current odds for the selected option (pre-bet)
-  // All options start with equal base liquidity — crowd shifts the odds
-  const totalEffectivePool = market.options.reduce(
-    (sum: number, o: { id: string }) => sum + (pools[o.id] || 0) + BASE_LIQUIDITY,
+  // Seed proportional to implied probability (1/odds)
+  const totalImpliedProb = market.options.reduce(
+    (sum: number, o: { id: string; odds: number }) => sum + 1 / o.odds,
     0
   );
-  const selectedPool = (pools[selected_option_id] || 0) + BASE_LIQUIDITY;
+  function getOptionSeed(o: { odds: number }): number {
+    return Math.round(((1 / o.odds) / totalImpliedProb) * TOTAL_SEED);
+  }
+
+  const totalEffectivePool = market.options.reduce(
+    (sum: number, o: { id: string; odds: number }) => sum + (pools[o.id] || 0) + getOptionSeed(o),
+    0
+  );
+  const selectedOpt = market.options.find((o: { id: string }) => o.id === selected_option_id);
+  const selectedPool = (pools[selected_option_id] || 0) + getOptionSeed(selectedOpt || { odds: 2 });
   const locked_odds = Math.round((totalEffectivePool / selectedPool) * 100) / 100;
 
   // Daily bonus: 500 coins for first prediction of the day

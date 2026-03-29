@@ -41,6 +41,7 @@ interface ParsedResult {
   firstInningsPowerplayScore: number | null;
   firstWicketOver: number | null; // over at which first wicket fell
   highestPowerplayIndividual: number | null; // highest individual score by end of 6th over (approximation)
+  topScorerName: string | null; // name of the highest run scorer
 }
 
 function teamMatches(text: string, teamShort: string): boolean {
@@ -123,11 +124,29 @@ function parseMatchPage(html: string): Partial<ParsedResult> {
   const tossMatch = html.match(/([A-Za-z ]+)(?:opt(?:ed)?|elected|chose) to (?:bat|bowl)/i);
   if (tossMatch) result.tossWinner = extractShortName(tossMatch[1].trim());
 
-  // Highest individual from og:title batting scores like "69(38)"
-  const battingScores = html.match(/(\d{2,3})\s*\(\d+\)/g);
-  if (battingScores) {
-    const runs = battingScores.map((s) => parseInt(s.match(/(\d+)/)?.[1] || "0"));
-    result.highestScore = Math.max(...runs);
+  // Highest individual from og:title — pattern: "Player Name RUNS(BALLS)"
+  // e.g. "Virat Kohli 69(38) Tim David 16(10)"
+  const batterPattern = /([A-Z][a-z]+(?: [A-Z][a-z]+)+)\s+(\d{1,3})\((\d+)\)/g;
+  let topRuns = 0;
+  let topName: string | null = null;
+  let bm;
+  while ((bm = batterPattern.exec(html.substring(0, 5000))) !== null) {
+    const runs = parseInt(bm[2]);
+    if (runs > topRuns) {
+      topRuns = runs;
+      topName = bm[1].trim();
+    }
+  }
+  result.highestScore = topRuns > 0 ? topRuns : null;
+  result.topScorerName = topName;
+
+  // Fallback: try simpler pattern "RUNS(BALLS)" without names
+  if (!result.highestScore) {
+    const simpleScores = html.match(/(\d{2,3})\s*\(\d+\)/g);
+    if (simpleScores) {
+      const runs = simpleScores.map((s) => parseInt(s.match(/(\d+)/)?.[1] || "0"));
+      result.highestScore = Math.max(...runs);
+    }
   }
 
   return result;
@@ -268,6 +287,7 @@ async function fetchCricbuzzResult(
     firstInningsPowerplayScore: null as number | null,
     firstWicketOver: null as number | null,
     highestPowerplayIndividual: null as number | null,
+    topScorerName: basic.topScorerName || null,
   };
 
   if (scorecardHtml) {
@@ -358,6 +378,25 @@ function resolveMarkets(
         opt = market.options.find((o) =>
           o.label.toUpperCase().includes(r.winner!) || teamMatches(o.label, r.winner!)
         );
+      }
+    }
+
+    // ── Top Scorer ──
+    else if (q.includes("top scorer")) {
+      if (r.topScorerName) {
+        // Try exact match first, then partial match
+        opt = market.options.find((o) =>
+          o.label.toLowerCase() === r.topScorerName!.toLowerCase()
+        ) || market.options.find((o) => {
+          const parts = r.topScorerName!.toLowerCase().split(" ");
+          const label = o.label.toLowerCase();
+          // Match by last name or full name
+          return parts.some(p => p.length > 3 && label.includes(p));
+        });
+        // If no named option matches, pick "Someone else"
+        if (!opt) {
+          opt = market.options.find((o) => o.label.toLowerCase().includes("someone else"));
+        }
       }
     }
 

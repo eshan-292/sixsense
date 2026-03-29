@@ -11,19 +11,29 @@ const SSR_REWARDS: Record<MarketTier, number> = {
   hard: 50,
 };
 
-const BASE_LIQUIDITY = 500;
+// Total virtual seed pool — distributed proportionally to initial odds
+// Options with lower odds (more likely) get more seed, higher odds (less likely) get less
+// This makes displayed odds match initial odds when no one has bet yet
+const TOTAL_SEED = 1000;
+
+function getOptionSeed(option: { odds: number }, allOptions: { odds: number }[]): number {
+  // Seed proportional to implied probability (1/odds)
+  const totalImpliedProb = allOptions.reduce((sum, o) => sum + 1 / o.odds, 0);
+  const impliedProb = 1 / option.odds;
+  return Math.round((impliedProb / totalImpliedProb) * TOTAL_SEED);
+}
 
 function calculateLiveOdds(
   options: { id: string; odds: number }[],
   pools: Record<string, number>
 ): Record<string, number> {
   const totalPool = options.reduce(
-    (sum, o) => sum + (pools[o.id] || 0) + BASE_LIQUIDITY,
+    (sum, o) => sum + (pools[o.id] || 0) + getOptionSeed(o, options),
     0
   );
   const odds: Record<string, number> = {};
   for (const o of options) {
-    const optionPool = (pools[o.id] || 0) + BASE_LIQUIDITY;
+    const optionPool = (pools[o.id] || 0) + getOptionSeed(o, options);
     odds[o.id] = Math.round((totalPool / optionPool) * 100) / 100;
   }
   return odds;
