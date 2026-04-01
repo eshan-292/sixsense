@@ -1,6 +1,6 @@
 # SixSense - IPL 2026 Prediction Market
 
-A play-money prediction market for IPL 2026. Predict match outcomes, earn virtual coins, build parlays, climb the leaderboard, and prove your cricket IQ. No real money involved.
+A free prediction market for IPL 2026. Pick match outcomes, lock in odds, beat your friends, climb the leaderboard. No real money. No fantasy team selection. Just pure cricket IQ.
 
 **Live:** [sixsense-mu.vercel.app](https://sixsense-mu.vercel.app)
 
@@ -10,68 +10,208 @@ A play-money prediction market for IPL 2026. Predict match outcomes, earn virtua
 
 1. [Overview](#overview)
 2. [Features](#features)
-3. [Tech Stack](#tech-stack)
-4. [How Dynamic Odds Work](#how-dynamic-odds-work)
-5. [Game Mechanics](#game-mechanics)
-6. [Database Schema](#database-schema)
-7. [Project Structure](#project-structure)
-8. [Setup & Development](#setup--development)
-9. [Deployment](#deployment)
-10. [Admin Usage](#admin-usage)
-11. [License](#license)
+3. [How Odds Work](#how-odds-work)
+4. [Market Types (16 per match)](#market-types-16-per-match)
+5. [Game Economy](#game-economy)
+6. [Auto-Settlement System](#auto-settlement-system)
+7. [Tech Stack](#tech-stack)
+8. [Database Schema](#database-schema)
+9. [Project Structure](#project-structure)
+10. [Setup & Development](#setup--development)
+11. [Admin Panel](#admin-panel)
+12. [Deployment](#deployment)
+13. [Roadmap](#roadmap)
 
 ---
 
 ## Overview
 
-SixSense is a social prediction market built around the IPL 2026 season. Users sign in with Google, receive 10,000 virtual coins, and place predictions on match outcomes across tiered markets. Odds shift dynamically based on the crowd's predictions, rewarding early and contrarian bets. A dual-track scoring system tracks both coin balance (from wagering) and SSR (SixSense Rating) for prestige. Parlays let users combine multiple predictions for amplified payouts. A global leaderboard ranks players by SSR, coins, streaks, and daily performance.
+SixSense is a social prediction game where users predict IPL match outcomes across 16 different markets per match. Sign in with Google, get 10,000 virtual coins, and start predicting. Odds are crowd-driven and shift in real time. Early bets lock better odds. Markets auto-settle by scraping Cricbuzz scorecard data after matches end.
+
+Key differentiators:
+- **16 predictions per match** (not just "who will win")
+- **Live odds** that move based on what others predict
+- **Auto-settlement** from Cricbuzz data (no manual admin needed)
+- **Official IPL team logos** from iplt20.com
+- **Parlay builder** for combined multi-market bets
+- **Points system** (formerly SSR) with streak multipliers
 
 ---
 
 ## Features
 
-### Core Prediction Engine
-- **Dynamic odds** that shift in real time based on the prediction pool (crowd-driven parimutuel model with virtual base liquidity)
-- **Locked odds for early bettors** -- the odds at the time you place your prediction are the odds you keep, regardless of how the pool shifts afterward
-- **Tiered markets** with increasing risk and reward:
-  - **Safe Picks** (easy) -- +10 SSR per correct prediction
-  - **Smart Calls** (medium) -- +25 SSR per correct prediction
-  - **Bold Predictions** (hard) -- +50 SSR per correct prediction
-- **Parlay builder** -- combine 2 to 4 predictions from the same match into a single high-risk, high-reward bet with combined multiplied odds
-- **One prediction per market per user** -- no double-dipping
+### Prediction Engine
+- 16 markets per match covering match winner, top scorer, powerplay stats, sixes, centuries, toss, and more
+- Crowd-driven parimutuel odds with weighted seed pools reflecting true probabilities
+- Locked odds at prediction time (early bets = better odds)
+- Wager range: 10-500 coins per market
+- One prediction per market per user
 
-### Scoring & Economy
-- **Dual-track scoring:** Coins (virtual currency for wagering) + SSR (SixSense Rating for prestige and leaderboard rank)
-- **10,000 starting coins** for every new user
-- **Wager range:** 100 to 1,000 coins per individual market prediction
-- **Daily bonus:** 500 coins automatically granted on your first prediction of each day
-- **Safety net:** If your balance drops below 1,000 coins after a wager, it auto-refills to 2,000 so you can keep playing
-- **Streak multipliers for SSR:**
-  - 3+ consecutive wins: 1.5x SSR reward
-  - 5+ consecutive wins: 2x SSR reward
-- **SSR penalty:** -3 SSR for incorrect predictions (minimum 0)
-- **Parlay SSR bonus:** 25 SSR per leg on a winning parlay
+### Parlays
+- Combine 2-4 predictions into a single bet with multiplied odds
+- Wager up to 1,000 coins on parlays
+- All picks must be correct to win
+- Auto-resolved when all constituent markets settle
+
+### Live Score Widget
+- Scrapes Cricbuzz match pages for live scores during matches
+- Shows team scores, overs, and match status
+- 30-second auto-refresh with manual refresh button
+- Collapsible UI, defaults to collapsed
+
+### Auto-Settlement
+- Scrapes Cricbuzz match page + scorecard page after match ends
+- Resolves all 16 market types automatically
+- Settles predictions, pays out coins, updates points and streaks
+- Triggered on page loads (debounced to 5-min intervals) + daily Vercel cron
 
 ### Leaderboard
-- **Four leaderboard tabs:** SSR (overall rating), Coins (total balance), Streaks (current win streak), Today (daily SSR earned)
-- **Top 50 displayed** per category with personal rank card
-- **Mini leaderboard** on the home page showing the top 3 players by coins
+- Two tabs: Points leaders, Coin leaders
+- Displays wins/losses, streak info
+- Personal rank card for logged-in users
 
-### User Experience
-- **Google OAuth** sign-in via Supabase
-- **70 real IPL 2026 matches** with correct dates, times (IST), and venues
-- **Live match countdown** timer on the home page (days, hours, minutes, seconds)
-- **Sequential betting** -- only the next upcoming match has open markets; all others are locked until the current match concludes
-- **Share predictions** to WhatsApp, X (Twitter), or clipboard -- both before and after settlement
-- **Mobile-first PWA design** with bottom tab navigation, frosted glass UI, and loading skeletons on every page
-- **Custom 404 page**
+### User Profile
+- Google OAuth via Supabase
+- Coin balance, win rate, prediction history
+- Achievement badges (19 achievements across 5 categories)
+- Daily bonus: 500 coins on first prediction each day
 
 ### Admin Panel
-- **Match management** -- add matches by selecting from all 10 IPL teams, set date/time/venue, change status (upcoming, live, completed)
-- **Market creation** -- create custom markets or use quick templates (Match Winner, Total Runs O/U, First Innings Score, Player of the Match)
-- **Bulk template creation** -- one-click to generate all 4 standard markets for a match
-- **Market settlement** -- select the correct outcome; coins and SSR are automatically distributed to all players
-- **Parlay auto-resolution** -- when all markets in a parlay are settled, the parlay is automatically resolved and credited
+- Match management (add, edit status, reset)
+- Market creation with 16 auto-generated templates
+- Manual settlement with auto-fetch from Cricbuzz
+- User management with Gmail display, coin grants, admin toggle, user deletion
+- Clear bets and reset match functionality
+
+---
+
+## How Odds Work
+
+SixSense uses a **weighted parimutuel odds system**. Each option is seeded with virtual liquidity proportional to its implied probability from initial odds.
+
+### Formula
+
+```
+seed(option) = (1/option.odds) / sum(1/all_options.odds) * TOTAL_SEED
+
+odds(option) = total_pool / option_pool
+where option_pool = actual_wagers + seed(option)
+```
+
+### Example: "Will there be a Super Over?"
+
+Initial odds: Yes = 15x, No = 1.05x
+
+- Implied probability: Yes = 1/15 = 6.7%, No = 1/1.05 = 95.2%
+- Seed distribution (TOTAL_SEED = 1000): Yes gets ~65 coins seed, No gets ~935
+- Starting displayed odds: **Yes 15.38x**, **No 1.07x** (close to initial odds)
+
+As users bet, odds shift from these starting points naturally. Popular picks get lower odds, contrarian picks get higher odds.
+
+### Locked Odds
+
+When you predict, your odds are **locked**. If you bet on "Yes, Super Over!" at 15x and later the odds drop to 10x, you still get paid at 15x if correct.
+
+---
+
+## Market Types (16 per match)
+
+Every match auto-generates these 16 prediction markets:
+
+| # | Market | Tier | Options | Initial Odds |
+|---|--------|------|---------|-------------|
+| 1 | Match Winner | Easy | Team A / Team B | 2x / 2x |
+| 2 | Total Runs O/U 340 | Easy | Over / Under | 1.9x / 1.9x |
+| 3 | First Innings Score | Medium | <150 / 150-179 / 180-199 / 200+ | 3x / 2.5x / 2.5x / 3x |
+| 4 | Player of the Match (team) | Easy | Team A player / Team B player | 2x / 2x |
+| 5 | First Ball Six | Hard | Yes / No | 8x / 1.1x |
+| 6 | Century Scored | Hard | Yes / No | 5x / 1.15x |
+| 7 | Fifty in Powerplay | Hard | Yes / No | 4x / 1.2x |
+| 8 | Powerplay Score | Medium | <40 / 40-55 / 56-70 / 71+ | 3.5x / 2.2x / 2.5x / 3x |
+| 9 | Most Sixes (team) | Medium | Team A / Team B / Equal | 2x / 2x / 6x |
+| 10 | Wicket in First Over | Hard | Yes / No | 4x / 1.2x |
+| 11 | Highest Individual Score | Medium | <50 / 50-74 / 75-99 / 100+ | 2.5x / 2.2x / 3x / 5x |
+| 12 | Total Sixes | Medium | <10 / 10-15 / 16-20 / 21+ | 2.5x / 2x / 2.5x / 3.5x |
+| 13 | Super Over | Hard | Yes / No | 15x / 1.05x |
+| 14 | Win Margin | Medium | 1-20 runs / 21-40 / 40+ / By wickets | 3x / 2.5x / 4x / 2x |
+| 15 | Toss Winner | Easy | Team A / Team B | 2x / 2x |
+| 16 | Top Scorer | Hard | 4 batsmen per team + "Someone else" | 8x each / 3x |
+
+Top scorer uses real 2026 squad data (verified post-auction: Kohli, Rohit, Gill, Pant, Jaiswal, etc.)
+
+---
+
+## Game Economy
+
+| Mechanic | Details |
+|----------|---------|
+| Starting balance | 10,000 coins |
+| Wager range | 10-500 per market, 10-1,000 per parlay |
+| Payout | `wager * locked_odds` for correct predictions |
+| Daily bonus | +500 coins on first prediction of each day |
+| Safety net | Auto-refill to 2,000 if balance drops below 1,000 |
+| Markets lock | When match status transitions to "live" |
+
+### Points (Prediction Rating)
+
+Points measure prediction skill, separate from coins.
+
+| Event | Points Change |
+|-------|--------------|
+| Correct Easy market | +10 |
+| Correct Medium market | +25 |
+| Correct Hard market | +50 |
+| 3+ win streak | 1.5x multiplier |
+| 5+ win streak | 2x multiplier |
+| Incorrect prediction | -3 (floor at 0) |
+| Winning parlay | +25 per leg |
+
+---
+
+## Auto-Settlement System
+
+Matches settle automatically without admin intervention.
+
+### Flow
+```
+Match created (admin) -> upcoming -> [auto] live -> [auto] completed + settled
+```
+
+1. **Upcoming -> Live**: `autoUpdateMatchStatuses()` runs on every page load. When `match_date` passes, it sets status to "live" and locks all markets.
+
+2. **Live -> Completed**: `autoSettleCompletedMatches()` checks for matches that have been live 3.5+ hours. Scrapes Cricbuzz for results.
+
+3. **Settlement**: When Cricbuzz shows "won by X", it:
+   - Fetches the match page (result, scores, toss, highest scorer)
+   - Fetches the scorecard page (sixes per batter, powerplay scores, fall of wickets)
+   - Maps results to all 16 market types
+   - Settles each market, pays out coins, updates points and streaks
+   - Resolves parlays
+   - Sets match to "completed" with result
+
+### Data Sources
+
+| Market | Data Source | Extraction Method |
+|--------|-----------|------------------|
+| Match Winner | Match page | "won by" text |
+| Toss Winner | Match page | "opted to bat/bowl" |
+| Total Runs | Match page | Sum scores from og:title |
+| First Innings Score | Match page | First score in og:title |
+| Player of the Match | Match page | Winning team (heuristic) |
+| Century / Highest Score | Scorecard | Batting table rows (runs/balls/4s/6s) |
+| Super Over | Match page | "won by" implies no super over |
+| Win Margin | Match page | Parse "won by X runs/wkts" |
+| Total Sixes / Most Sixes | Scorecard | Sum 6s column per innings |
+| Powerplay Score | Scorecard | "Mandatory / 0.1-6 / SCORE" pattern |
+| Wicket in First Over | Scorecard | First FOW over number <= 1.0 |
+| 50+ in Powerplay | Scorecard | PP score >= 65 -> likely yes |
+| First Ball Six | Default "No" | ~3-5% occurrence rate |
+| Top Scorer | Scorecard | Highest runs in batting table |
+
+### Debouncing
+- Auto-settle runs at most once per 5 minutes (in-memory timestamp guard)
+- Concurrent runs prevented by `settleRunning` flag
+- Vercel cron as daily backup safety net
 
 ---
 
@@ -84,106 +224,32 @@ SixSense is a social prediction market built around the IPL 2026 season. Users s
 | Auth | Supabase Auth (Google OAuth) |
 | Styling | Tailwind CSS 4 |
 | Language | TypeScript 5 |
-| Hosting | Vercel (auto-deploy on push to main) |
+| Hosting | Vercel |
+| Live Scores | Cricbuzz HTML scraping |
+| Team Logos | IPL official CDN (scores.iplt20.com) |
 
 All infrastructure runs on free tiers.
-
----
-
-## How Dynamic Odds Work
-
-SixSense uses a **pool-based parimutuel odds system** with virtual base liquidity to ensure stable, fair odds even with small prediction pools.
-
-### The Mechanism
-
-1. **Base liquidity:** Each option in a market starts with a virtual base pool of 500 coins. This prevents extreme odds when only a few users have predicted.
-
-2. **Odds calculation:**
-   ```
-   odds(option) = total_effective_pool / option_effective_pool
-   ```
-   Where `effective_pool = actual_wagers + 500 (base liquidity)` for each option.
-
-3. **Example:** A binary market ("Who will win -- CSK or MI?") with 2,000 coins wagered on CSK and 800 coins on MI:
-   - CSK effective pool: 2,000 + 500 = 2,500
-   - MI effective pool: 800 + 500 = 1,300
-   - Total: 3,800
-   - CSK odds: 3,800 / 2,500 = **1.52x**
-   - MI odds: 3,800 / 1,300 = **2.92x**
-
-4. **Locked odds:** When you place a prediction, the current odds are **locked** for you. Even if thousands of coins pour into your option afterward (driving the odds down), you keep the odds you saw when you clicked "Predict." This rewards early and contrarian bets.
-
-5. **Settlement payout:** `coins_won = coins_wagered * locked_odds` for correct predictions. Incorrect predictions receive 0 coins.
-
----
-
-## Game Mechanics
-
-### Coins Economy
-
-| Mechanic | Details |
-|----------|---------|
-| Starting balance | 10,000 coins |
-| Wager range | 100 -- 1,000 per market (individual), 100 -- 2,000 per parlay |
-| Payout | `wager * locked_odds` (dynamic, crowd-driven) |
-| Daily bonus | 500 coins on first prediction of the day |
-| Safety net | Auto-refill to 2,000 if balance drops below 1,000 |
-| Market lock | Markets lock when match status changes to "live" |
-
-### SSR (SixSense Rating) System
-
-SSR is a prestige score separate from coins. It measures prediction skill and consistency.
-
-| Event | SSR Change |
-|-------|-----------|
-| Correct Safe Pick (easy) | +10 SSR |
-| Correct Smart Call (medium) | +25 SSR |
-| Correct Bold Prediction (hard) | +50 SSR |
-| 3+ win streak multiplier | 1.5x the base SSR reward |
-| 5+ win streak multiplier | 2x the base SSR reward |
-| Incorrect prediction | -3 SSR (floor at 0) |
-| Winning parlay bonus | +25 SSR per leg |
-
-### Market Tiers
-
-| Tier | Label | SSR Reward | Risk Level |
-|------|-------|-----------|------------|
-| Easy | Safe Pick | +10 SSR | Low risk, common outcomes (e.g., match winner) |
-| Medium | Smart Call | +25 SSR | Medium risk, requires insight (e.g., first innings score range) |
-| Hard | Bold Prediction | +50 SSR | High risk, unlikely outcomes (e.g., exact score bracket) |
-
-### Parlays
-
-- Combine 2 to 4 predictions from the same match into a single parlay
-- Combined odds = product of individual option odds
-- Wager range: 100 to 2,000 coins (capped at your balance)
-- **All predictions must be correct** to win; partial wins are not awarded
-- Automatically resolved when all constituent markets are settled
-- Winning parlays grant bonus SSR (25 per leg)
 
 ---
 
 ## Database Schema
 
 ### `profiles`
-Extends Supabase `auth.users`. Auto-created on signup via database trigger.
+Auto-created on signup via database trigger.
 
 | Column | Type | Description |
 |--------|------|-------------|
-| id | uuid (PK, FK to auth.users) | User ID |
+| id | uuid (PK, FK auth.users) | User ID |
 | display_name | text | From Google profile |
 | avatar_url | text | From Google profile |
 | coins | integer (default 10,000) | Virtual coin balance |
 | total_predictions | integer | Lifetime prediction count |
-| total_wins | integer | Lifetime correct predictions |
-| total_losses | integer | Lifetime incorrect predictions |
-| win_streak | integer | Current consecutive wins |
-| best_streak | integer | All-time best consecutive wins |
-| current_streak | integer | Active streak (for SSR multiplier) |
-| ssr | integer (default 0) | SixSense Rating (prestige score) |
-| ssr_today | integer (default 0) | SSR earned today |
-| last_daily_bonus | date | Last date daily bonus was granted |
-| is_admin | boolean (default false) | Admin access flag |
+| total_wins / total_losses | integer | Win/loss counts |
+| win_streak / best_streak / current_streak | integer | Streak tracking |
+| ssr | integer (default 0) | Points rating |
+| ssr_today | integer (default 0) | Points earned today |
+| last_daily_bonus | date | Last daily bonus claim |
+| is_admin | boolean | Admin access |
 
 ### `matches`
 
@@ -191,55 +257,51 @@ Extends Supabase `auth.users`. Auto-created on signup via database trigger.
 |--------|------|-------------|
 | id | uuid (PK) | Match ID |
 | team_a / team_b | text | Full team names |
-| team_a_short / team_b_short | text | Short codes (e.g., CSK, MI) |
-| match_date | timestamptz | Match date and time (IST) |
+| team_a_short / team_b_short | text | Short codes (CSK, MI, etc.) |
+| match_date | timestamptz | Match date/time (IST) |
 | venue | text | Stadium name |
-| status | text | `upcoming`, `live`, or `completed` |
-| result | text | `team_a_win`, `team_b_win`, `no_result`, or null |
+| status | text | `upcoming` / `live` / `completed` |
+| result | text | `team_a_win` / `team_b_win` / `no_result` |
 
 ### `markets`
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | uuid (PK) | Market ID |
-| match_id | uuid (FK to matches) | Parent match |
-| question | text | e.g., "Who will win CSK vs MI?" |
-| market_type | text | `binary` or `multiple_choice` |
-| options | jsonb | Array of `{id, label, odds}` objects |
-| status | text | `open`, `locked`, or `settled` |
+| match_id | uuid (FK) | Parent match |
+| question | text | Market question |
+| market_type | text | `binary` / `multiple_choice` |
+| options | jsonb | `[{id, label, odds}]` |
+| status | text | `open` / `locked` / `settled` |
 | correct_option_id | text | Set on settlement |
-| tier | text | `easy`, `medium`, or `hard` |
+| tier | text | `easy` / `medium` / `hard` |
 
 ### `predictions`
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | uuid (PK) | Prediction ID |
-| user_id | uuid (FK to profiles) | User who predicted |
-| market_id | uuid (FK to markets) | Market predicted on |
-| selected_option_id | text | Chosen option ID |
-| coins_wagered | integer (100-1,000) | Amount wagered |
-| coins_won | integer (nullable) | Payout after settlement |
-| locked_odds | numeric(6,2) | Dynamic odds locked at prediction time |
-| ssr_earned | integer (default 0) | SSR gained or lost on settlement |
-
-Unique constraint: one prediction per user per market.
+| user_id | uuid (FK) | User |
+| market_id | uuid (FK) | Market |
+| selected_option_id | text | Chosen option |
+| coins_wagered | integer (10-1,000) | Wager amount |
+| coins_won | integer (nullable) | Payout (null = pending) |
+| locked_odds | numeric(6,2) | Odds locked at prediction time |
+| ssr_earned | integer | Points earned/lost |
 
 ### `parlays`
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | uuid (PK) | Parlay ID |
-| user_id | uuid (FK to profiles) | User who placed it |
-| match_id | uuid (FK to matches) | Match the parlay covers |
-| predictions | jsonb | Array of `{market_id, selected_option_id}` |
-| coins_wagered | integer | Amount wagered on the parlay |
-| combined_odds | numeric(6,2) | Product of all individual odds |
-| status | text | `active`, `won`, `lost`, or `partial` |
-| coins_won | integer (nullable) | Payout if won |
-| ssr_earned | integer (default 0) | SSR bonus if won |
+| user_id / match_id | uuid (FK) | User and match |
+| predictions | jsonb | `[{market_id, selected_option_id}]` |
+| coins_wagered | integer | Parlay wager |
+| combined_odds | numeric(6,2) | Multiplied odds |
+| status | text | `active` / `won` / `lost` |
+| coins_won | integer | Payout if won |
 
-Row Level Security is enabled on all tables. Users can read all data but only write their own. Admins have full access to matches and markets.
+RLS enabled on all tables. Users can read all data but only write their own.
 
 ---
 
@@ -248,65 +310,52 @@ Row Level Security is enabled on all tables. Users can read all data but only wr
 ```
 sixsense/
 ├── app/
-│   ├── layout.tsx                    # Root layout, navbar, footer, bottom nav
-│   ├── page.tsx                      # Home -- today's matches, countdown, mini leaderboard, stats
-│   ├── globals.css                   # Global styles (glass effects, gradients)
-│   ├── not-found.tsx                 # Custom 404 page
-│   ├── loading.tsx                   # Home loading skeleton
-│   ├── schedule/
-│   │   └── page.tsx                  # Full 70-match schedule with team filter
+│   ├── layout.tsx                    # Root layout (Navbar + BottomNav)
+│   ├── page.tsx                      # Home: countdown, today, upcoming, recent, how-to-play
+│   ├── globals.css                   # Design system (CSS vars, card, btn, animations)
+│   ├── schedule/                     # Full 70-match schedule with team filter
 │   ├── match/[id]/
-│   │   ├── page.tsx                  # Match detail (server -- fetches match, markets, betting status)
-│   │   ├── MatchDetailClient.tsx     # Match UI, tiered markets, parlay builder (client)
-│   │   └── loading.tsx               # Match loading skeleton
-│   ├── leaderboard/
-│   │   ├── page.tsx                  # Leaderboard with 4 tabs (SSR, Coins, Streaks, Today)
-│   │   └── LeaderboardTabs.tsx       # Tab switching component (client)
-│   ├── profile/
-│   │   └── page.tsx                  # User profile, stats, prediction history
-│   ├── how-to-play/
-│   │   └── page.tsx                  # Rules and gameplay guide
+│   │   ├── page.tsx                  # Server: fetch match, markets, betting status
+│   │   └── MatchDetailClient.tsx     # Client: markets, parlay bar, live score, win celebration
+│   ├── leaderboard/                  # Points + Coins leaderboards
+│   ├── profile/                      # User stats, achievements, daily bonus
+│   ├── my-bets/                      # Prediction history (active/settled/parlays)
+│   ├── how-to-play/                  # Rules and strategy guide
 │   ├── admin/
-│   │   ├── page.tsx                  # Admin dashboard
-│   │   ├── matches/page.tsx          # Add matches, create markets (templates + custom)
-│   │   └── settle/page.tsx           # Settle markets with correct outcomes
-│   ├── api/
-│   │   ├── predict/route.ts          # POST -- place prediction, deduct coins, daily bonus, safety net
-│   │   ├── settle/route.ts           # POST -- settle market, distribute coins + SSR, resolve parlays
-│   │   ├── parlay/route.ts           # POST -- place parlay bet
-│   │   └── admin/route.ts            # Admin API endpoints
-│   ├── auth/
-│   │   └── callback/route.ts         # Google OAuth callback handler
-│   └── user/                         # User-related pages
+│   │   ├── matches/                  # Add matches, create markets (16 templates)
+│   │   ├── settle/                   # Manual settlement with auto-fetch
+│   │   └── users/                    # User management (emails, coins, admin toggle)
+│   └── api/
+│       ├── predict/route.ts          # Place prediction (odds lock, daily bonus, safety net)
+│       ├── settle/route.ts           # Settle market (coins, points, streaks, parlays)
+│       ├── parlay/route.ts           # Place parlay
+│       ├── auto-settle/route.ts      # Cron endpoint for auto-settlement
+│       ├── live-score/route.ts       # Cricbuzz scraper for live scores
+│       └── admin/                    # Admin APIs (users, clear-bets, reset, fetch-results)
 ├── components/
-│   ├── Navbar.tsx                    # Sticky frosted glass top navbar
-│   ├── BottomNav.tsx                 # Mobile bottom tab bar (Home, Schedule, Leaderboard, Profile)
-│   ├── Footer.tsx                    # Footer with links and disclaimer
-│   ├── MatchCard.tsx                 # Match card with team badges, countdown, market/prediction counts
-│   ├── MarketCard.tsx                # Prediction market -- dynamic odds, wager slider, tier badges, SSR display
-│   ├── NextMatchCountdown.tsx        # Live countdown timer (days:hrs:min:sec)
-│   ├── ShareButton.tsx               # Share to WhatsApp / X / clipboard
-│   ├── Toast.tsx                     # Toast notification system
-│   └── Providers.tsx                 # Client providers wrapper
+│   ├── Navbar.tsx                    # Logo + coins + avatar (links to /profile)
+│   ├── BottomNav.tsx                 # 4 tabs: Home, My Bets, Ranks, Profile (SVG icons)
+│   ├── MatchCard.tsx                 # Match card with team logos, date, status
+│   ├── MarketCard.tsx                # Betting card: options, odds, preset wagers + slider
+│   ├── TeamBadge.tsx                 # IPL team logo (falls back to colored circle)
+│   ├── LiveScoreWidget.tsx           # Collapsible live score from Cricbuzz
+│   ├── NextMatchCountdown.tsx        # Compact countdown banner
+│   ├── WinCelebration.tsx            # Confetti + win modal
+│   ├── ActivityFeed.tsx              # Real-time prediction feed (Supabase subscriptions)
+│   ├── AchievementBadge.tsx          # Achievement display
+│   └── Toast.tsx                     # Toast notification system
 ├── lib/
-│   ├── supabase/
-│   │   ├── client.ts                 # Browser Supabase client
-│   │   ├── server.ts                 # Server-side Supabase client
-│   │   └── admin.ts                  # Service role client (for settlement operations)
-│   ├── types.ts                      # TypeScript interfaces (Profile, Match, Market, Prediction, Parlay, etc.)
-│   └── utils.ts                      # Helpers: formatCoins, timeUntil, getTeamColor
-├── supabase/
-│   └── migrations/
-│       ├── 001_initial.sql           # Base schema: profiles, matches, markets, predictions, RLS, triggers
-│       ├── 004_ssr_and_parlays.sql   # SSR fields, market tiers, parlays table
-│       └── 005_locked_odds.sql       # Dynamic locked odds column on predictions
-├── public/
-│   └── manifest.json                 # PWA manifest
-├── package.json
-├── tsconfig.json
-├── next.config.ts
-├── postcss.config.mjs
-└── eslint.config.mjs
+│   ├── auto-settle.ts               # Cricbuzz scraping + market resolution + settlement
+│   ├── auto-status.ts               # Match status transitions (upcoming->live->settled)
+│   ├── cricket-api.ts               # CricketData.org integration (backup)
+│   ├── achievements.ts              # 19 achievements across 5 categories
+│   ├── types.ts                      # TypeScript interfaces
+│   ├── utils.ts                      # Helpers (formatCoins, timeUntil, getTeamColor, getTeamLogo)
+│   └── supabase/                     # Client, server, and admin Supabase clients
+├── supabase/migrations/              # 5 SQL migration files
+├── vercel.json                       # Cron config (daily auto-settle)
+├── TODO.md                           # Feature roadmap
+└── package.json
 ```
 
 ---
@@ -314,10 +363,9 @@ sixsense/
 ## Setup & Development
 
 ### Prerequisites
-
 - Node.js 18+
-- A Supabase project (free tier works)
-- A Google OAuth app (configured in Supabase Auth > Providers)
+- Supabase project (free tier)
+- Google OAuth app (configured in Supabase Auth)
 
 ### 1. Clone and install
 
@@ -329,7 +377,7 @@ npm install
 
 ### 2. Environment variables
 
-Create `.env.local` in the project root:
+Create `.env.local`:
 
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
@@ -337,23 +385,18 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
-| Variable | Description |
-|----------|-------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL (public) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key for client-side access (public) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key for admin operations like settlement (server-side only, never exposed to client) |
+### 3. Database setup
 
-### 3. Supabase setup
+Run migrations in order in Supabase SQL editor:
+1. `001_initial.sql` - profiles, matches, markets, predictions, RLS, triggers
+2. `004_ssr_and_parlays.sql` - points fields, tiers, parlays table
+3. `005_locked_odds.sql` - dynamic locked odds
+4. `006_cric_match_id.sql` - Cricbuzz match ID column
+5. `007_update_wager_range.sql` - updated wager constraints (10-1000)
 
-1. Run the migration files in order from `supabase/migrations/` in your Supabase SQL editor:
-   - `001_initial.sql` -- creates profiles, matches, markets, predictions tables with RLS and triggers
-   - `004_ssr_and_parlays.sql` -- adds SSR fields, market tiers, and parlays table
-   - `005_locked_odds.sql` -- adds locked_odds column for dynamic odds
-2. Enable **Google OAuth** in Authentication > Providers
-3. Add redirect URLs in Supabase Auth settings:
-   - `http://localhost:3000/auth/callback` (development)
-   - `https://your-domain.vercel.app/auth/callback` (production)
-4. The `handle_new_user()` trigger automatically creates a profile row when a user signs up
+Enable Google OAuth in Supabase Auth > Providers. Add callback URLs:
+- `http://localhost:3000/auth/callback` (dev)
+- `https://your-domain.vercel.app/auth/callback` (prod)
 
 ### 4. Run locally
 
@@ -361,11 +404,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
 ### 5. Make yourself admin
-
-In the Supabase table editor or SQL editor, set `is_admin = true` on your profile row:
 
 ```sql
 UPDATE profiles SET is_admin = true WHERE display_name = 'Your Name';
@@ -373,31 +412,54 @@ UPDATE profiles SET is_admin = true WHERE display_name = 'Your Name';
 
 ---
 
-## Deployment
+## Admin Panel
 
-SixSense is deployed on **Vercel** with auto-deploy from the `main` branch.
+Access at `/admin` (visible only to admins in navbar).
 
-1. Push to `main` -- Vercel builds and deploys automatically
-2. Ensure all three environment variables are set in Vercel project settings (Settings > Environment Variables)
-3. Add the production callback URL (`https://your-domain.vercel.app/auth/callback`) to Supabase Auth redirect URLs
+### Match Management (`/admin/matches`)
+- Add matches by selecting from 10 IPL teams with date/time/venue
+- **16 markets auto-created** for every new match (all templates)
+- Change status: upcoming -> live -> completed
+- Reset match (reopens markets, clears settlement)
+- Clear all bets on a match
+
+### Market Settlement (`/admin/settle`)
+- Auto-fetch results from Cricbuzz (one-click per match)
+- Shows suggested answers with auto-resolve indicators
+- Manual override for markets that can't be auto-resolved
+- "Auto-Settle All" for bulk settlement
+
+### User Management (`/admin/users`)
+- All signed-in users with Gmail addresses and join dates
+- Grant coins, reset coins, toggle admin status
+- Delete users (removes predictions, parlays, profile, and auth)
 
 ---
 
-## Admin Usage
+## Deployment
 
-1. Set `is_admin = true` on your profile in Supabase
-2. Access `/admin` from the navbar (visible only to admins)
-3. **Manage Matches** (`/admin/matches`):
-   - Add new matches by selecting from all 10 IPL teams
-   - Set date, time (IST), and venue
-   - Change match status: upcoming -> live (locks all markets) -> completed
-4. **Create Markets**:
-   - Use quick templates: Match Winner, Total Runs O/U, First Innings Score, Player of the Match
-   - Or create custom markets with custom options, odds, and tier
-   - "Create All 4 Templates at Once" for one-click market setup
-5. **Settle Markets** (`/admin/settle`):
-   - Select the correct outcome for each market
-   - Settlement automatically distributes coin payouts, updates SSR, resolves streaks, and settles any dependent parlays
+Hosted on **Vercel**. Deploy manually:
+
+```bash
+vercel --prod
+```
+
+Ensure environment variables are set in Vercel project settings.
+
+Note: GitHub webhook for auto-deploy may need reconnection. Use `vercel --prod` to deploy directly.
+
+---
+
+## Roadmap
+
+See [TODO.md](./TODO.md) for the full feature roadmap:
+- Referral system (invite friends, both get coins)
+- Daily challenges (predict X markets for bonus)
+- Head-to-head challenges
+- Private leagues
+- Live match chat
+- In-play micro predictions
+- Streak rewards UI
 
 ---
 
